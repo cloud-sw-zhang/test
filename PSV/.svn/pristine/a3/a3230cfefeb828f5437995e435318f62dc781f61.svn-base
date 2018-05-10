@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><SOAP-ENV:Envelope
+xmlns:SOAPSDK1="http://www.w3.org/2001/XMLSchema"
+xmlns:SOAPSDK2="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:SOAPSDK3="http://schemas.xmlsoap.org/soap/encoding/"
+xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"><SOAP-ENV:Header></SOAP-ENV:Header><SOAP-ENV:Body><M1:SetConnectionType
+xmlns:M1="urn:NETGEAR-ROUTER:service:WANIPConnection:1">
+<NewAddressingType>Static</NewAddressingType>
+<NewExternalIPAddress>192.168.1.250</NewExternalIPAddress>
+<NewSubnetMask>255.255.252.0 & reboot</NewSubnetMask>
+<NewDefaultGateway>x.x.x.x</NewDefaultGateway>
+</M1:SetIPInterfaceInfo>
+</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

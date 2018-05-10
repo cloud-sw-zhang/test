@@ -1,0 +1,17 @@
+*** Settings ***
+Resource          ../../ProjectResource_Envirement.txt
+
+*** Test Cases ***
+1.3.1.1 Parent Controls Page
+
+*** Keywords ***
+Test1.3.1.1_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.3.1.1_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}

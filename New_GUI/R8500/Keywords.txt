@@ -1,0 +1,716 @@
+*** Settings ***
+Resource          ProjectResource_Envirement.txt
+ 
+*** Keywords ***
+COMMON_Open_Browser
+    [Arguments]    ${browser}=%{U_CUSTOM_BROWSER_TYPE}
+    [Timeout]    5 minutes
+    #Kidd
+    log    ${browser}
+    Close All Browsers
+    Run Keyword If    '${browser}'=='Firefox'    Open Browser    %{G_PROD_IP_ADDR}    ${browser}    ff_profile_dir=%{G_SQAROOT}\\skbate96.Kidd
+    ...    ELSE    Open Browser    %{G_PROD_IP_ADDR}    ${browser}
+    Run Keyword If    '${browser}'=='Chrome'    Maximize Browser Window
+
+COMMON_Scroll_To_Element
+    [Arguments]    ${Element}
+    Sleep    2
+    #(not correct)#Execute Javascript    var ele = document.getElementById('${ElementID}');document.documentElement.scrollTop = ele.scrollTop+ele.getBoundingClientRect().top;    if(document.documentElement.scrollHeight == document.documentElement.clientHeight + document.documentElement.scrollTop){}else{document.documentElement.scrollBy(0,-100);}
+    Execute Javascript    $("html,body").animate({scrollTop:$("${Element}").offset().top-"85"+"px"},500);    if(document.documentElement.scrollHeight == document.documentElement.clientHeight + document.documentElement.scrollTop){}else{document.documentElement.scrollBy(0,-100);}
+    #Execute Javascript    var x = $("${Element}").offset().top;document.documentElement.scrollTop = x-85;    if(document.documentElement.scrollHeight == document.documentElement.clientHeight + document.documentElement.scrollTop){}else{document.documentElement.scrollBy(0,-100);}
+    Sleep    2
+
+COMMON_Log_In
+    [Arguments]    ${user}    ${pwd}
+    COMMON_Open_Browser
+    FUNCTION_Log_In    ${user}    ${pwd}
+
+COMMON_Get_Element_Text
+    [Arguments]    ${Element}    ${ScrollToElement}
+    Run_Keyword_If    '${ScrollToElement}'=='True'    COMMON_Scroll_To_Element    ${Element}
+    ${value}    Get_Text    css=${Element}
+    [Return]    ${value}
+
+COMMON_Get_Elements_Text
+    [Arguments]    ${ScrollToElement}    @{Element}
+    @{valuelist}    Create List
+    : FOR    ${i}    IN    @{Element}
+    \    Run_Keyword_If    '${ScrollToElement}'=='True'    COMMON_Scroll_To_Element    ${i}
+    \    ${value}    Get Text    css=${i}
+    \    Append To List    ${valuelist}    ${value}
+    [Return]    @{valuelist}
+
+COMMON_Get_Element_Attribute
+    [Arguments]    ${Attribute}    ${Element}
+    Sleep    2
+    ${value}    Get Element Attribute    css=${Element}    ${Attribute}
+    Sleep    2
+    [Return]    ${value}
+
+COMMON_Get_Elements_Attribute
+    [Arguments]    ${Attribute}    @{Element}
+    @{valuelist}    Create List
+    : FOR    ${i}    IN    @{Element}
+    \    Sleep    2
+    \    ${value}    Get Element Attribute    css=${i}    ${Attribute}
+    \    Append To List    ${valuelist}    ${value}
+    \    Sleep    2
+    [Return]    @{valuelist}
+
+COMMON_Input_Text
+    [Arguments]    ${Element}    ${text}
+    Sleep    2
+    Input Text    css=${Element}    ${text}
+    Sleep    2
+
+COMMON_Select_Window
+    [Arguments]    ${title}
+    Sleep    2
+    Select Window    ${title}
+    Sleep    2
+
+GUI_Click_Element
+    [Arguments]    ${Element}
+    Sleep    2
+    Run Keyword If    '%{U_CUSTOM_BROWSER_TYPE}'=='Firefox'    Execute Javascript    $("${Element}").click()
+    ...    ELSE    Click Element    css=${Element}
+    Sleep    2
+
+GUI_Click_Element_JS
+    [Arguments]    ${Element}
+    Sleep    2
+    Execute Javascript    $("${Element}").click()
+    Sleep    2
+
+GUI_Click_Element_CSS
+    [Arguments]    ${Element}
+    Sleep    2
+    Click Element    css=${Element}
+    Sleep    2
+
+GUI_Click_Element_XPATH
+    [Arguments]    ${Element}
+    Sleep    2
+    Click Element    xpath=${Element}
+    Sleep    2
+
+GUI_DIVCheckbox_Checked
+    [Arguments]    ${Element}    ${Checked}    ${ScrollToElement}
+    [Documentation]    This keyword is meet the DIV element who's type is checkbox,user can choise to scroll to the element and check/uncheck the element.
+    ...    Arguments:
+    ...
+    ...    ${Element}:should be element's CSS selector location without 'css='
+    ...
+    ...    ${Checked}:On=the element will be checked. Off=the element will be unchecked.
+    ...
+    ...    ${ScrollToElement}:True=scroll to the element.False=do not scroll to the element.
+    ${Result}    ${Type}    Run Keyword and Ignore Error    COMMON_Get_Element_Attribute    ctrl-type    ${Element}
+    ${Temp}    Run Keyword If    '${Result}'=='PASS'    Evaluate    '${Type}'=='checkbox'
+    Should Be True    '${Temp}'=='True'
+    Run_Keyword_If    '${ScrollToElement}'=='True'    COMMON_Scroll_To_Element    ${Element}
+    ${re}    ${mess}    Run Keyword And Ignore Error    GUI_Click_Element_CSS    ${Element}>label
+    Run Keyword If    '${re}'=='FAIL'    GUI_Click_Element_CSS    ${Element}>input
+    Sleep    3
+    ${Attribute}    COMMON_Get_Element_Attribute    class    ${Element}
+    ${Result}    ${message}    Run Keyword And Ignore Error    Should Contain    ${Attribute}    off
+    Run Keyword If    '${Result}'=='PASS' and '${Checked}'=='On'    GUI_Click_Element_CSS    ${Element}>label
+    ...    ELSE IF    '${Result}'=='FAIL' and '${Checked}'=='Off'    GUI_Click_Element_CSS    ${Element}>label
+
+GUI_DIVCheckbox_Get_State
+    [Arguments]    ${Element}    ${ScrollToElement}
+    [Documentation]    This keyword is meet the DIV element who's type is checkbox,user can choise to scroll to the element and check/uncheck the element.
+    ...    Arguments:
+    ...
+    ...    ${Element}:should be element's CSS selector location without 'css='
+    ...
+    ...    ${Checked}:On=the element will be checked. Off=the element will be unchecked.
+    ...
+    ...    ${ScrollToElement}:True=scroll to the element.False=do not scroll to the element.
+    ${Result}    ${Type}    Run Keyword and Ignore Error    COMMON_Get_Element_Attribute    ctrl-type    ${Element}
+    ${Temp}    Run Keyword If    '${Result}'=='PASS'    Evaluate    '${Type}'=='checkbox'
+    Should Be True    '${Temp}'=='True'
+    Run_Keyword_If    '${ScrollToElement}'=='True'    COMMON_Scroll_To_Element    ${Element}
+    ${re}    ${mess}    Run Keyword And Ignore Error    GUI_Click_Element_CSS    ${Element}>label
+    Sleep    3
+    ${Attribute}    COMMON_Get_Element_Attribute    class    ${Element}
+    ${Result}    ${message}    Run Keyword And Ignore Error    Should Contain    ${Attribute}    off
+    ${Checked}    Set Variable If    '${Result}'=='PASS'    On
+    ${Checked}    Set Variable If    '${Result}'=='FAIL'    Off
+    [Return]    ${Checked}
+
+GUI_DIVCheckbox_Foreach
+    [Arguments]    ${ScrollToElement}    @{Element}
+    [Documentation]    This keyword is meet the DIV element who's type is checkbox,user can choise to scroll to the element and will check the element first then uncheck it.
+    ...    Arguments:
+    ...
+    ...    @{Element}:should be element's CSS selector location without 'css='
+    ...
+    ...    ${ScrollToElement}:True=scroll to the element.False=do not scroll to the element.
+    : FOR    ${i}    IN    @{Element}
+    \    ${Result}    ${Type}    Run Keyword and Ignore Error    COMMON_Get_Element_Attribute    ctrl-type    ${i}
+    \    ${Temp}    Run Keyword If    '${Result}'=='PASS'    Evaluate    '${Type}'=='checkbox'
+    \    Should Be True    '${Temp}'=='True'
+    \    Run_Keyword_If    '${ScrollToElement}'=='True'    COMMON_Scroll_To_Element    ${i}
+    \    ${re}    ${mess}    Run Keyword And Ignore Error    GUI_Click_Element_CSS    ${i}>label
+    \    Run_Keyword_If    '${re}'=='FAIL'    Run Keyword And Ignore Error    GUI_Click_Element_CSS    ${i}>input
+    \    Sleep    3
+    \    ${Attribute}    COMMON_Get_Element_Attribute    class    ${i}
+    \    ${Resultold}    ${message}    Run Keyword And Ignore Error    Should Contain    ${Attribute}    off
+    \    ${re}    ${mess}    Run Keyword And Ignore Error    GUI_Click_Element_CSS    ${i}>label
+    \    Run_Keyword_If    '${re}'=='FAIL'    Run Keyword And Ignore Error    GUI_Click_Element_CSS    ${i}>input
+    \    Sleep    3
+    \    ${Attribute}    COMMON_Get_Element_Attribute    class    ${i}
+    \    ${Resultnew}    ${message}    Run Keyword And Ignore Error    Should Contain    ${Attribute}    off
+    \    Run Keyword If    '${Resultold}'=='PASS'    Should Be True    '${Resultnew}'=='FAIL'
+    \    ...    ELSE IF    '${Resultold}'=='FAIL'    Should Be True    '${Resultnew}'=='PASS'
+
+GUI_Dropdownlist_Foreach
+    [Arguments]    ${Element}    ${ScrollToElement}
+    [Documentation]    The version which is being used now.
+    ...    Argument should be ${Element}
+    ...    Tester should type Dropdownlist 's id,and the text in the list of dropdownlist.
+    ...    For example:
+    ...    <div>dropdownlistdiv
+    ...    <button id='ID'>...
+    ...    </button>
+    ...    <ul id='ID'>
+    ...    <li>a</li>
+    ...    ............
+    ...    <li>x</li>
+    ...    </ul>
+    ...    </div>
+    ...
+    ...    So the robot keyword should be : | GUI_Dropdownlist_Foreach | ${Element} |
+    ...    ${Element} should be "The BUTTON" in the div because the type is bond to "The BUTTON"
+    ...
+    ...    Now the dropdownlist is almost this type,and this keyword function should be used under this condition.
+    ${Result}    ${Type}    Run Keyword and Ignore Error    COMMON_Get_Element_Attribute    data-toggle    ${Element}
+    ${Temp}    Run Keyword If    '${Result}'=='PASS'    Evaluate    '${Type}'=='dropdown'
+    Should Be True    '${Temp}'=='True'
+    Run_Keyword_If    '${ScrollToElement}'=='True'    COMMON_Scroll_To_Element    ${Element}
+    @{list}    Create List
+    @{list}    Get_Web_Elements    css=${Element}+ul>li
+    @{listid}    Create List
+    @{listvalue}    Create List
+    : FOR    ${i}    IN    @{list}
+    \    ${id}    Get_Element_Attribute    ${i}    id
+    \    GUI_Click_Element_CSS    ${Element}
+    \    GUI_Click_Element_CSS    li[id='${id}']>a
+    Sleep    5
+    ###    below is the CODE to create a list of UL's elements
+    #: FOR    ${i}    IN    @{list}
+    #    ${id}    Get_Element_Attribute    ${i}    id
+    #    ${value}    Get_Text    css=li[id='${id}']>a
+    #    Append To List    ${listid}    ${id}
+    #    Append To List    ${listvalue}    ${value}
+    ###
+
+GUI_Dropdownlist_Choise_Text
+    [Arguments]    ${Element}    ${Text}    ${ScrollToElement}
+    [Documentation]    The version which is being used now.
+    ...    Argument should be ${Element}
+    ...    Tester should type Dropdownlist 's id,and the text in the list of dropdownlist.
+    ...    For example:
+    ...    <div>dropdownlistdiv
+    ...    <button id='ID'>...
+    ...    </button>
+    ...    <ul id='ID'>
+    ...    <li>a</li>
+    ...    ............
+    ...    <li>x</li>
+    ...    </ul>
+    ...    </div>
+    ...
+    ...    So the robot keyword should be : \ | GUI_Dropdownlist_Foreach | ${Element} |
+    ...    ${Element} should be "The BUTTON" in the div because the type is bond to "The BUTTON"
+    ...
+    ...    Now the dropdownlist is almost this type,and this keyword function should be used under this condition.
+    Run Keyword If    '${ScrollToElement}' == 'True'    COMMON_Scroll_To_Element    ${Element}
+    @{list}    Get_Web_Elements    css=${Element}+ul>li
+    @{listid}    Create List
+    @{listvalue}    Create List
+    @{listhtml}    Create List
+    GUI_Click_Element_CSS    ${Element}
+    : FOR    ${i}    IN    @{list}
+    \    ${id}    Get_Element_Attribute    ${i}    id
+    \    ${html}    Get_Element_Attribute    ${i}    innerHTML
+    \    ${value}    Get_Text    css=li[id='${id}']>a
+    \    Append To List    ${listid}    ${id}
+    \    Append To List    ${listvalue}    ${value}
+    \    ${Result}    ${Message}    Run keyword And Ignore Error    Should Be True    '${value}'=='${Text}'
+    \    Run Keyword If    '${Result}'=='PASS'    GUI_Click_Element_CSS    li[id='${id}']>a
+    \    Run Keyword If    '${Result}'=='PASS'    Exit_For_Loop
+    Sleep    5
+
+GUI_Radiobutton_Foreach
+    [Arguments]    ${Element}    ${ScrollToElement}
+    Run Keyword If    '${ScrollToElement}' == 'True'    COMMON_Scroll_To_Element    ${Element}
+    ${Result}    ${Class}    Run Keyword and Ignore Error    COMMON_Get_Element_Attribute    class    ${Element}
+    ${Temp}    Run Keyword If    '${Result}'=='PASS'    Evaluate    '${Class}'=='radio-button-wrapper'
+    Should Be True    '${Temp}'=='True'
+    @{list}    Get_Web_Elements    css=${Element} input
+    : FOR    ${i}    IN    @{list}
+    \    ${id}    Get_Element_Attribute    ${i}    id
+    \    GUI_Click_Element_CSS    input[id='${id}']+label
+    Sleep    2
+
+GUI_Radiobutton_Choise_BySnum
+    [Arguments]    ${Element}    ${CheckItemSNum}    ${ScrollToElement}
+    Run Keyword If    '${ScrollToElement}' == 'True'    COMMON_Scroll_To_Element    ${Element}
+    ${Result}    ${Class}    Run Keyword and Ignore Error    COMMON_Get_Element_Attribute    class    ${Element}
+    ${Temp}    Run Keyword If    '${Result}'=='PASS'    Evaluate    '${Class}'=='radio-button-wrapper'
+    Should Be True    '${Temp}'=='True'
+    @{list}    Get_Web_Elements    css=${Element} input
+    ${SNum}    Set Variable    1
+    : FOR    ${i}    IN    @{list}
+    \    ${id}    Get_Element_Attribute    ${i}    id
+    \    ${R}    Evaluate    ${SNum}==int(${CheckItemSNum})
+    \    Run Keyword If    '${R}'=='True'    GUI_Click_Element_CSS    input[id='${id}']+label
+    \    Exit For Loop If    '${R}'=='True'
+    \    ${SNum}    Evaluate    ${SNum}+1
+    Sleep    5
+
+GUI_Radiobutton_Get_Which_Choised
+    [Arguments]    ${Element}    ${ScrollToElement}
+    Run Keyword If    '${ScrollToElement}' == 'True'    COMMON_Scroll_To_Element    ${Element}
+    ${Result}    ${Class}    Run Keyword and Ignore Error    COMMON_Get_Element_Attribute    class    ${Element}
+    ${Temp}    Run Keyword If    '${Result}'=='PASS'    Evaluate    '${Class}'=='radio-button-wrapper'
+    Should Be True    '${Temp}'=='True'
+    @{list}    Get_Web_Elements    css=${Element} input
+    ${SNum}    Set Variable    1
+    : FOR    ${i}    IN    @{list}
+    \    ${id}    Get_Element_Attribute    ${i}    id
+    \    ${R}    Get_Element_Attribute    css=input[id='${id}']    checked
+    \    ${Result}    ${Class}    Run Keyword and Ignore Error    Should Contain    ${R}    true
+    \    Exit For Loop If    '${Result}'=='PASS'
+    \    ${SNum}    Evaluate    ${SNum}+1
+    ${Choised_Num}    Set Variable    ${SNum}
+    Sleep    5
+    [Return]    ${Choised_Num}
+
+GUI_ScrollDIV_To_DIVElement
+    [Arguments]    ${DivID}    ${ElementID}
+    #Execute Javascript    var x = $('#${Element}').offset().top;var div = document.getElementById('${DIVid}');div.scrollTop = x;    #offset().top is the "absolute position"    #position().top is the "relative position"
+    ${DIVHeight}    Get_Vertical_Position    ${DivID}
+    ${ElementHeight}    Get_Vertical_Position    ${ElementID}
+    Execute Javascript    var div = document.getElementById('${DIVid}');div.scrollTop = ${ElementHeight}-${DIVHeight};    if(div.scrollHeight == div.clientHeight + div.scrollTop){}else{div.scrollBy(0,-20);}
+
+CHECK_Textinput
+    [Arguments]    ${Element}    ${Length}    ${RoundL}    ${RoundR}    ${AlertElement}    ${AlertMessage}
+    ...    ${CorrectText}    ${ScrollToElement}
+    [Documentation]    Check that text input area should act alert or auto-correct the error input
+    ...    Arguments:
+    ...    ${Element}:,should be element's CSS selector location without 'css='
+    [Return]    ${Check_Result}
+
+CHECK_Alert_Should_Show
+    [Arguments]    ${Element}    ${WarningMessage}    ${Timeoutsecond}=30
+    [Documentation]    Check that warning/alert bar should show with specified message show on it in timeout.
+    ...    Arguments:
+    ...    ${Element}:,should be element's CSS selector location without 'css='
+    ...    ${WarningMessage}: The message text should be shown on the bar
+    ...    ${Timeout}:numbers of seconds
+    ...
+    ...    example: div[id='a'] | Waring | 30
+    Wait_Until_Element_Is_Visible    css=${Element}    timeout=${Timeoutsecond}s
+    ${Text}    Get_Text    css=${Element}
+    Should Contain    ${Text}    ${WarningMessage}
+    Sleep    2
+    Run Keyword And Ignore Error    GUI_Click_Element_CSS    button[id='intAlertInfoButton']
+    Sleep    2
+    ${Check_Result}    Set Variable    PASS
+    [Return]    ${Check_Result}
+
+CHECK_Wait_Page_Not_Contain
+    [Arguments]    ${Element}    ${Timeout}
+    Wait_Until_Page_Does_Not_Contain_Element    css=${Element}    timeout=${Timeout}s
+    ${Check_Result}    Set Variable    PASS
+    [Return]    ${Check_Result}
+
+CHECK_Wait_Until_Element_Should
+    [Arguments]    ${Element}    ${Visible}    ${Timeout}
+    [Documentation]    Check that element should visible/invisible in timeout.
+    ...    Arguments:
+    ...    ${Element}:,should be element's CSS selector location without 'css='
+    ...    ${Visible}: True=Visible,False=Not Visible
+    ...    ${Timeout}:numbers of seconds
+    ...
+    ...    example: div[id='a'] | True | 30
+    Run_Keyword_If    '${Visible}'=='True'    Wait_Until_Element_Is_Visible    css=${Element}    timeout=${Timeout}s
+    Run_Keyword_If    '${Visible}'=='False'    Wait_Until_Element_Is_Not_Visible    css=${Element}    timeout=${Timeout}s
+    ${Check_Result}    Set Variable    PASS
+    Sleep    2
+    [Return]    ${Check_Result}
+
+CHECK_Elements_Should_Show
+    [Arguments]    ${ScrollToElement}    @{Element}
+    [Documentation]    Check that element should be visible
+    ...    Arguments:
+    ...
+    ...    ${ScrollToElement}:True=scroll to the element.False=do not scroll to the element.
+    ...
+    ...    @{Element}:,should be element's CSS selector location without 'css='
+    ...
+    ...    example: False | div[id='a']
+    : FOR    ${i}    IN    @{Element}
+    \    Run_Keyword_If    '${ScrollToElement}'=='True'    COMMON_Scroll_To_Element    ${i}
+    \    Element_Should_Be_Visible    css=${i}
+    ${Check_Result}    Set Variable    PASS
+    [Return]    ${Check_Result}
+
+CHECK_Elements_Should_Not_Show
+    [Arguments]    ${ScrollToElement}    @{Element}
+    [Documentation]    Check that element should be not visible
+    ...    Arguments:
+    ...
+    ...    ${ScrollToElement}:True=scroll to the element.False=do not scroll to the element.
+    ...
+    ...    @{Element}:,should be element's CSS selector location without 'css='
+    ...
+    ...    example: False | div[id='a']
+    : FOR    ${i}    IN    @{Element}
+    \    Run_Keyword_If    '${ScrollToElement}'=='True'    COMMON_Scroll_To_Element    ${i}
+    \    Element_Should_Not_Be_Visible    css=${i}
+    ${Check_Result}    Set Variable    PASS
+    [Return]    ${Check_Result}
+
+CHECK_Elements_Should_Exists
+    [Arguments]    @{Element}
+    [Documentation]    Check that element should visible/invisible in timeout.
+    ...    Arguments:
+    ...    ${Element}:,should be element's CSS selector location without 'css='
+    ...    ${Visible}: True=Visible,False=Not Visible
+    ...    ${Timeout}:numbers of seconds
+    ...
+    ...    example: div[id='a'] | True | 30
+    : FOR    ${i}    IN    @{Element}
+    \    Page Should Contain Element    css=${i}
+    ${Check_Result}    Set Variable    PASS
+    [Return]    ${Check_Result}
+
+CHECK_Element_Should_Have_Text
+    [Arguments]    ${Element}    ${Text}    ${ScrollToElement}
+    Run_Keyword_If    '${ScrollToElement}'=='True'    COMMON_Scroll_To_Element    ${Element}
+    ${value}    Get_Text    css=${Element}
+    #Should Contain    ${value}    ${Text}
+    Should Be True    '${value}'=='${Text}'
+    ${Check_Result}    Set Variable    PASS
+    [Return]    ${Check_Result}
+
+CHECK_Element_Should_Contain_Text
+    [Arguments]    ${Element}    ${Text}    ${ScrollToElement}
+    Run_Keyword_If    '${ScrollToElement}'=='True'    COMMON_Scroll_To_Element    ${Element}
+    ${value}    Get_Text    css=${Element}
+    Should Contain    ${value}    ${Text}
+    ${Check_Result}    Set Variable    PASS
+    [Return]    ${Check_Result}
+
+CHECK_Element_Should_Not_Have_Text
+    [Arguments]    ${Element}    ${Text}    ${ScrollToElement}
+    Run_Keyword_If    '${ScrollToElement}'=='True'    COMMON_Scroll_To_Element    ${Element}
+    ${value}    Get_Text    css=${Element}
+    Should not Contain    ${value}    ${Text}
+    ${Check_Result}    Set Variable    PASS
+    Sleep    2
+    [Return]    ${Check_Result}
+
+ABANDONED_Elements_Should_Exists
+    [Arguments]    @{Element}
+    : FOR    ${i}    IN    @{Element}
+    \    Page Should Contain Element    css=${i}
+
+ABANDONED_GUI_Elements_Should_Show
+    [Arguments]    ${ScrollToElement}    @{Element}
+    : FOR    ${i}    IN    @{Element}
+    \    Run_Keyword_If    '${ScrollToElement}'=='True'    COMMON_Scroll_To_Element    ${i}
+    \    Element_Should_Be_Visible    css=${i}
+
+ABANDONED_GUI_Scroll_To_Element_Version1
+    [Arguments]    ${Element}
+    Sleep    2
+    Scroll_To_Element    css=${Element}
+    Execute Javascript    if(document.documentElement.scrollHeight == document.documentElement.clientHeight + document.documentElement.scrollTop){}else{document.documentElement.scrollBy(0,-100);}
+    Sleep    2
+
+ABANDONED_GUI_Scroll_To_Element_Version2
+    [Arguments]    ${Element}
+    ${ElementHeight}    Get_Vertical_Position    css=${Element}
+    Sleep    2
+    Execute Javascript    document.documentElement.scrollTop = ${ElementHeight};    if(document.documentElement.scrollHeight == document.documentElement.clientHeight + document.documentElement.scrollTop){}else{document.documentElement.scrollBy(0,-100);}
+    #:FOR    ${i}    IN RANGE    20
+    #    ${Result}    ${Message}    Element_Should_Be_Visible    css=${Element}
+    #    Run Keyword If    '${Result}'=='PASS'    Exit_For_Loop
+    #    Execute Javascript    document.documentElement.scrollBy(0,-20);
+    #    Sleep    2
+    Sleep    2
+
+ABANDONED_GUI_Scroll_To_Element_Version3
+    [Arguments]    ${Element}
+    Sleep    2
+    #Execute Javascript    var ele = document.getElementById('${ElementID}');document.documentElement.scrollTop = ele.scrollTop+ele.getBoundingClientRect().top;    if(document.documentElement.scrollHeight == document.documentElement.clientHeight + document.documentElement.scrollTop){}else{document.documentElement.scrollBy(0,-100);}
+    Execute Javascript    var ele = document.querySelector("${Element}");document.documentElement.scrollTop = ele.scrollTop+ele.getBoundingClientRect().top;    if(document.documentElement.scrollHeight == document.documentElement.clientHeight + document.documentElement.scrollTop){}else{document.documentElement.scrollBy(0,-100);}
+    Sleep    2
+
+ABANDONED_GUI_Element_Should_Show
+    [Arguments]    ${Element}
+    Sleep    2
+    Element_Should_Be_Visible    css=${Element}
+    Sleep    2
+
+ABANDONED_GUI_Element_Should_Exists
+    [Arguments]    ${Element}
+    Page Should Contain Element    css=${Element}
+
+FUNCTION_Load_Default_By_Python
+    OperatingSystem.Run    python %{G_SQAROOT}\\ATE_BED\\R8500\\Tools\\loaddefault.py
+    Sleep    10
+
+FUNCTION_Log_In
+    [Arguments]    ${user}    ${pwd}
+    COMMON_Input_Text    input[id='loginNetworkName']    ${user}
+    COMMON_Input_Text    input[id='loginNetworkPassword']    ${pwd}
+    GUI_Click_Element_CSS    div[id='loginWrapper'] > div.loginButton.modalFooterBlockOne.apply.waves-effect.waves-gray.btn > div > a
+    Wait Until Element Is Visible    collapseRouterInfoOnehwversion    timeout=30s
+    Sleep    10
+    #: FOR    ${i}    IN RANGE    0    5
+    #    ${title}    Get Title
+    #    ${status}    Run Keyword And Ignore Error    Should Be Equal As Strings    ${title}    %{U_WEB_HTTP_TITLE}
+    #    Exit For Loop If    '${status[0]}'=='PASS'
+
+FUNCTION_Set_Internet_Mode_And_IP_DHCP
+    [Documentation]    Arguments ${Switch} Shoul be determined by tester "On" or "Off"
+    FUNCTION_Goto_Advanced_Setup_Internet_Page
+    GUI_Click_Element_CSS    ul[id='internetSetupHeader']>li:nth-child(1)>a>div
+    GUI_Radiobutton_Foreach    div[id='internetSetupContainer'] > div > div > div.panel_0.tabPanel.col-lg-12.col-md-12.col-xs-12.active > div.ng-block-wrapper > div:nth-child(2) > div    False
+    GUI_Radiobutton_Choise_BySnum    div[id='internetSetupContainer'] > div > div > div.panel_0.tabPanel.col-lg-12.col-md-12.col-xs-12.active > div.ng-block-wrapper > div:nth-child(2) > div    2    False
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    30
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    90
+    Sleep    60
+    GUI_Click_Element_CSS    ul[id='internetSetupHeader']>li:nth-child(2)>a>div
+    GUI_Radiobutton_Foreach    div[id='internetIpAddressIpAddressDiv']    False
+    GUI_Radiobutton_Choise_BySnum    div[id='internetIpAddressIpAddressDiv']    1    False
+    Run Keyword And Ignore Error    GUI_Radiobutton_Choise_BySnum    div[id='internetIpAddressDomainNameServerDNS']    1    False
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    30
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    90
+    Sleep    60
+
+FUNCTION_Set_Internet_Connection_DHCP_Off
+    FUNCTION_Set_Internet_Mode_And_IP_DHCP
+    FUNCTION_Goto_Advanced_RouterStatus_Page
+    GUI_Click_Element_CSS    button[id='advRouterStatusBtnReleasenButton']
+    Run Keyword And Ignore Error    Wait_Until_Element_Is_Visible    css=div[id='modal-actionUpdate'] > div.modal-content > div.modal-body > div > span.spinner-wrapper > span    timeout=10s
+    Run Keyword And Ignore Error    Wait_Until_Element_Is_Not_Visible    css=div[id='modal-actionUpdate'] > div.modal-content > div.modal-body > div > span.spinner-wrapper > span    timeout=30s
+
+FUNCTION_Set_Internet_Connection_DHCP_On
+    FUNCTION_Set_Internet_Mode_And_IP_DHCP
+    FUNCTION_Goto_Advanced_RouterStatus_Page
+    GUI_Click_Element_CSS    button[id='advRouterStatusBtnRenewButton']
+    Run Keyword And Ignore Error    Wait_Until_Element_Is_Visible    css=div[id='modal-actionUpdate'] > div.modal-content > div.modal-body > div > span.spinner-wrapper > span    timeout=10s
+    Run Keyword And Ignore Error    Wait_Until_Element_Is_Not_Visible    css=div[id='modal-actionUpdate'] > div.modal-content > div.modal-body > div > span.spinner-wrapper > span    timeout=30s
+
+FUNCTION_Switch_Dynamic_Qos
+    [Arguments]    ${Switch}
+    [Documentation]    Arguments ${Switch} Shoul be determined by tester "On" or "Off"
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuSetupAlink']
+    GUI_Click_Element_CSS    a[id='menuSetupDynamicQosAlink1']
+    Wait Until Element Is Visible    advSetupQoSBandWidth    timeout=30s
+    Sleep    5
+    GUI_Click_Element_CSS    label[id='enableDynamicQosLabel']
+    Sleep    5
+    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='qosEnableDiv']
+    ${Result}    ${message}    Run Keyword And Ignore Error    Should Contain    ${Attribute}    off
+    Run Keyword If    '${Result}'=='PASS' and '${Switch}'== 'On'    GUI_Click_Element_CSS    label[id='enableDynamicQosLabel']
+    Run Keyword If    '${Switch}'== 'On'    COMMON_Input_Text    input[id='advSetupQoSDownloadSpeed']    50
+    Run Keyword If    '${Switch}'== 'On'    COMMON_Input_Text    input[id='advSetupQoSUploadSpeed']    50
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    30
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    180
+    Sleep    10
+
+FUNCTION_Switch_Smart_Connect
+    [Arguments]    ${Switch}
+    [Documentation]    Arguments ${Switch} Shoul be determined by tester "On" or "Off"
+    FUNCTION_Goto_Advanced_Setup_Wireless_Page
+    GUI_Click_Element_CSS    div[id='intEnablesmartConnectControl']
+    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='intEnablesmartConnectControl']
+    ${Result}    ${message}    Run Keyword And Ignore Error    Should Contain    ${Attribute}    off
+    Run Keyword If    '${Result}'=='PASS' and '${Switch}'== 'On'    GUI_Click_Element_CSS    div[id='intEnablesmartConnectControl']
+    ...    ELSE IF    '${Result}'=='FAIL' and '${Switch}'== 'Off'    GUI_Click_Element_CSS    div[id='intEnablesmartConnectControl']
+    Wait Until Element Is Visible    submitPanel    timeout=30s
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    Sleep    60
+
+FUNCTION_Goto_Dashboard_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='dashboardMenu']
+
+FUNCTION_Goto_Advanced_RouterStatus_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuRouterStatusAlink']
+    Wait_Until_Element_Is_Visible    css=div[id='advRouterStatus']    timeout=30s
+
+FUNCTION_Goto_Advanced_Monitoring_DataUsage_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuMonitoringAlink1']
+    GUI_Click_Element_CSS    a[id='menuMonitoringDataUsageAlink1']
+    Wait_Until_Element_Is_Visible    advMonDU    timeout=30s
+
+FUNCTION_Goto_Advanced_Monitoring_Logs_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuMonitoringAlink1']
+    GUI_Click_Element_CSS    a[id='menuMonitoringLogsAlink1']
+    Wait Until Element Is Visible    css=div[id='advLogs']    timeout=30s
+
+FUNCTION_Goto_Advanced_Monitoring_Statistics_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuMonitoringAlink1']
+    GUI_Click_Element_CSS    a[id='menuMonitoringStatisticsAlink1']
+    Wait Until Element Is Visible    css=div[id='advMonStatistics']    timeout=30s
+
+FUNCTION_Goto_Advanced_AdvancedSettings_Wireless_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsAlink1']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsWirelessAlink1']
+    Wait_Until_Element_Is_Visible    advASAdvancedWireless    timeout=30s
+
+FUNCTION_Goto_Advanced_AdvancedSettings_PortForwarding_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsAlink1']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsPortForwardingAlink1']
+    Wait Until Element Is Visible    css=div[id='advASPortForwarding']    timeout=30s
+
+FUNCTION_Goto_Advanced_AdvancedSettings_PortTriggering_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsAlink1']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsPortTriggeringAlink1']
+    Wait Until Element Is Visible    css=div[id='advASPortTriggering']    timeout=30s
+
+FUNCTION_Goto_Advanced_AdvancedSettings_DDNS_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsAlink1']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsDynamicDNSAlink1']
+    Wait Until Element Is Visible    css=div[id='advASDynamicDNS']    timeout=30s
+
+FUNCTION_Goto_Advanced_AdvancedSettings_VPNService_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsAlink1']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsVPNServiceAlink1']
+    Wait Until Element Is Visible    css=div[id='advASVPNService']    timeout=30s
+
+FUNCTION_Goto_Advanced_AdvancedSettings_StaticRouters_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsAlink1']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsStaticRoutesAlink1']
+    Wait Until Element Is Visible    css=div[id='advASStaticRoutes']    timeout=30s
+
+FUNCTION_Goto_Advanced_AdvancedSettings_RemoteManagement_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsAlink1']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsWebServiceManagementAlink1']
+    Wait Until Element Is Visible    css=div[id='advASWebServiceManagement']    timeout=30s
+
+FUNCTION_Goto_Advanced_AdvancedSettings_UPnP_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsAlink1']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsUpnpAlink1']
+    Wait Until Element Is Visible    css=div[id='advASUPnP']    timeout=30s
+
+FUNCTION_Goto_Advanced_AdvancedSettings_IPv6_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsAlink1']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsIPv6Alink1']
+    Wait Until Element Is Visible    css=div[id='advASIPv6']    timeout=30s
+
+FUNCTION_Goto_Advanced_AdvancedSettings_WPSSetting_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsAlink1']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsWPSSettingsAlink1']
+    Wait Until Element Is Visible    css=div[id='advASWPSSettings']    timeout=30s
+
+FUNCTION_Goto_Advanced_AdvancedSettings_VLAN_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsAlink1']
+    GUI_Click_Element_CSS    a[id='menuAdvancedSettingsIPTVVLANSetupAlink1']
+    Wait Until Element Is Visible    css=div[id='advASIPTVVLANSetup']    timeout=30s
+
+FUNCTION_Goto_Advanced_USB_READYSHAREPrinter_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuUSBAlink1']
+    GUI_Click_Element_CSS    a[id='menuUSBReadySharePrinterAlink1']
+    Wait Until Element Is Visible    css=div[id='advUSBReadySharePrinter']    timeout=30s
+
+FUNCTION_Goto_Advanced_Setup_Internet_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuSetupAlink']
+    GUI_Click_Element_CSS    a[id='advSetupInternetAlink']
+    Wait Until Element Is Visible    css=div[id='advSetupInternet']    timeout=30s
+
+FUNCTION_Goto_Advanced_Setup_SetupWizard_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuSetupAlink']
+    GUI_Click_Element_CSS    a[id='menuSetupWizardAlink1']
+    Wait Until Element Is Visible    css=div[id='advSetupWizard']    timeout=30s
+
+FUNCTION_Goto_Advanced_Setup_LANSetup_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuSetupAlink']
+    GUI_Click_Element_CSS    a[id='menuSetupLanAlink1']
+    Wait Until Element Is Visible    css=div[id='advSetupLan']    timeout=30s
+
+FUNCTION_Goto_Advanced_Setup_Wireless_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuSetupAlink']
+    GUI_Click_Element_CSS    a[id='menuSetupWirelessAlink1']
+    Wait Until Element Is Visible    css=div[id='advSetupWireless']    timeout=30s
+
+FUNCTION_Goto_Advanced_Setup_GuestNetwork_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuSetupAlink']
+    GUI_Click_Element_CSS    a[id='menuSetupGuestNetworkAlink1']
+    Wait Until Element Is Visible    css=div[id='advSetupGuestNetwork']    timeout=30s
+
+FUNCTION_Goto_Advanced_Setup_Dynamic_Qos_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuSetupAlink']
+    GUI_Click_Element_CSS    a[id='menuSetupDynamicQosAlink1']
+    Wait Until Element Is Visible    css=div[id='advSetupQoS']    timeout=30s
+
+FUNCTION_Goto_Advanced_Setup_Router_Mode_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuSetupAlink']
+    GUI_Click_Element_CSS    a[id='menuSetupRouterModeAlink1']
+    Wait Until Element Is Visible    css=div[id='advSetupRouterMode']    timeout=30s
+
+FUNCTION_Goto_Advanced_Setup_WPS_Wizard_Page
+    Execute Javascript    document.documentElement.scrollTop=0
+    GUI_Click_Element_CSS    a[id='advancedMenu']
+    GUI_Click_Element_CSS    a[id='menuSetupAlink']
+    GUI_Click_Element_CSS    a[id='menuSetupWpsWizardAlink1']
+    Wait Until Element Is Visible    css=div[id='wpsWizard']    timeout=30s

@@ -1,0 +1,163 @@
+*** Settings ***
+Resource          ../../ProjectResource_Envirement.txt
+
+*** Test Cases ***
+1.2.1.1 Network Status Test+
+    Test1.2.1.1_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.2.1.1_Step1 Log In
+    Test1.2.1.1_Step2 Page Check
+    Test1.2.1.1_Step3 Internet Conntion Check
+    Test1.2.1.1_Step4 Firmware Upgrade Check+
+    Test1.2.1.1_Step5 Smart Connect switch Check
+    Test1.2.1.1_Step6 Access Control switch Check
+    Test1.2.1.1_Step7 Parent Control switch Check
+    Test1.2.1.1_Step8 Dynamic Qos switch Check
+
+*** Keywords ***
+Test1.2.1.1_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.2.1.1_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.2.1.1_Step2 Page Check
+    FUNCTION_Goto_Dashboard_Page
+    Check_Dashboard_Page
+
+Test1.2.1.1_Step3 Internet Conntion Check
+    Check_Internet_Topology
+
+Test1.2.1.1_Step4 Firmware Upgrade Check+
+    Check_Firmware_Upgrade
+
+Test1.2.1.1_Step5 Smart Connect switch Check
+    Check_Smart_Connect
+
+Test1.2.1.1_Step6 Access Control switch Check
+    Check_Access_Control
+
+Test1.2.1.1_Step7 Parent Control switch Check
+    Check_Parent_Control
+
+Test1.2.1.1_Step8 Dynamic Qos switch Check
+    Check_Dynamic_Qos
+
+Check_Dashboard_Page
+    #check that dashboard page has the div to show parameter
+    ${Result}    CHECK_Elements_Should_Show    True    div[id='networkTopology']    div[id='accordionRouterInfo']    div[id='devicesContainer']    div[id='wirelesNetworksWrapper']
+    ...    div[id='networkSpeedContainerWrapper']    div[id='totoalDataUsageContainer']
+    Should Be True    '${Result}'=='PASS'
+
+Check_Internet_Topology
+    #goto internet connect setting page
+    FUNCTION_Goto_Advanced_Setup_Internet_Page
+    #set internet connect mode pppoe
+    GUI_Radiobutton_Choise_BySnum    div[id='internetSetupContainer'] > div > div > div.panel_0.tabPanel.col-lg-12.col-md-12.col-xs-12.active > div.ng-block-wrapper > div:nth-child(2) > div    1    True
+    #set internet connect mode pppoe user and password as guest
+    COMMON_Input_Text    input[id='panel0InternetUserName']    guest
+    COMMON_Input_Text    input[id='panel0InternetPassword']    guest12345
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Wait_Until_Element_Should    div[id='modal-generalConfirm']    True    30
+    GUI_Click_Element_CSS    a[id='alinkGeneralYes']
+    CHECK_Wait_Until_Element_Should    div[id='modal-generalConfirm']    False    30
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    30
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    90
+    Sleep    60
+    #goto dashboard page
+    FUNCTION_Goto_Dashboard_Page
+    #check the topology png is correct
+    ${Result}    CHECK_Elements_Should_Show    True    img[src='images/topology/noFailoverNoInternet.svg']
+    Should Be True    '${Result}'=='PASS'
+    #goto internet connect setting page
+    FUNCTION_Goto_Advanced_Setup_Internet_Page
+    #set internet connect mode dhcp
+    GUI_Radiobutton_Choise_BySnum    div[id='internetSetupContainer'] > div > div > div.panel_0.tabPanel.col-lg-12.col-md-12.col-xs-12.active > div.ng-block-wrapper > div:nth-child(2) > div    2    True
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    30
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    90
+    Sleep    60
+    #goto dashboard page
+    FUNCTION_Goto_Dashboard_Page
+    #check the topology png is correct
+    ${Result}    CHECK_Elements_Should_Show    True    img[src='images/topology/noFailoverConnected.svg']
+    Should Be True    '${Result}'=='PASS'
+
+Check_Firmware_Upgrade
+    #click firmware update button to search for newer firmware
+    GUI_Click_Element_CSS    a[id='intCheckUpgradeAlink']
+    CHECK_Wait_Until_Element_Should    a[id='intCheckUpgradeAlink']    False    30
+    CHECK_Wait_Until_Element_Should    a[id='intCheckUpgradeAlink']    True    60
+    Sleep    30
+    #should show the firmware after update
+    ${t}    COMMON_Get_Element_Text    span[id='upgCheckedDateSpan']    False
+
+Check_Smart_Connect
+    FUNCTION_Goto_Dashboard_Page
+    #click samrt connect switch
+    GUI_Click_Element_CSS    span[id='smartConnectSwitchText']
+    GUI_Click_Element_CSS    input[id='collapseRouterInfoThreeenableSmartConnect']
+    sleep    35
+    FUNCTION_Goto_Advanced_Setup_Wireless_Page
+    #goto setting page to ensure the setting and get the smart connect state now    #stat 1
+    ${valueold}    COMMON_Get_Element_Attribute    checked    input[id='smartConnect_enable']
+    FUNCTION_Goto_Dashboard_Page
+    #click samrt connect switch again
+    GUI_Click_Element_CSS    span[id='smartConnectSwitchText']
+    GUI_Click_Element_CSS    input[id='collapseRouterInfoThreeenableSmartConnect']
+    sleep    35
+    FUNCTION_Goto_Advanced_Setup_Wireless_Page
+    #goto setting page to ensure the setting and get the smart connect state now again    #stat 2
+    ${valuenew}    COMMON_Get_Element_Attribute    checked    input[id='smartConnect_enable']
+    #stat1 should not equal stat2
+    Should_Be_True    '${valueold}'<>'${valuenew}'
+
+Check_Access_Control
+    FUNCTION_Goto_Dashboard_Page
+    GUI_Click_Element_CSS    span[id='accessControlSwitchText']
+    GUI_Click_Element_CSS    input[id='collapseRouterInfoFourenableAccessControl']
+    sleep    15
+    GUI_Click_Element_CSS    a[id='collapseRouterInfoFourColLg5Alink']
+    ${valueold}    COMMON_Get_Element_Attribute    checked    input[id='accessCtrl_enable']
+    FUNCTION_Goto_Dashboard_Page
+    GUI_Click_Element_CSS    input[id='collapseRouterInfoFourenableAccessControl']
+    sleep    15
+    GUI_Click_Element_CSS    a[id='collapseRouterInfoFourColLg5Alink']
+    ${valuenew}    COMMON_Get_Element_Attribute    checked    input[id='accessCtrl_enable']
+    Should_Be_True    '${valueold}'<>'${valuenew}'
+
+Check_Parent_Control
+    FUNCTION_Goto_Dashboard_Page
+    GUI_Click_Element_CSS    span[id='parentalControlsSwitchText']
+    ${Result}    CHECK_Elements_Should_Show    True    div[id='intParentalControlsDescDiv']
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='moreButtonAlink']
+    ${Result}    CHECK_Elements_Should_Show    True    div[id='advCFParentalControl']
+    Should Be True    '${Result}'=='PASS'
+
+Check_Dynamic_Qos
+    FUNCTION_Goto_Dashboard_Page
+    GUI_Click_Element_CSS    span[id='dynamicQoSSwitchText']
+    GUI_Click_Element_CSS    a[id='CopseRouterInfoSixlLg5Alink']
+    GUI_DIVCheckbox_Checked    div[id='qosEnableDiv']    On    True
+    COMMON_Input_Text    input[id='advSetupQoSDownloadSpeed']    100
+    COMMON_Input_Text    input[id='advSetupQoSUploadSpeed']    100
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    Run_Keyword_And_Ignore_Error    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    60
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    120
+    FUNCTION_Goto_Dashboard_Page
+    GUI_Click_Element_CSS    label[id='collapseRouterInfoSixColLg9Label'] > div
+    CHECK_Wait_Until_Element_Should    div[id='networkStatusContainer'] > div.load-box.load-box-secondary > div.load-box-wrapper    True    30
+    CHECK_Wait_Until_Element_Should    div[id='networkStatusContainer'] > div.load-box.load-box-secondary > div.load-box-wrapper    False    120
+    GUI_Click_Element_CSS    a[id='CopseRouterInfoSixlLg5Alink']
+    ${value}    COMMON_Get_Element_Attribute    checked    input[id='collapseRouterInfoSixenableDynamicQos']
+    Should_Be_True    '${value}'=='None'
+    GUI_DIVCheckbox_Checked    div[id='qosEnableDiv']    Off    True
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    Run_Keyword_And_Ignore_Error    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    60
+    Run_Keyword_And_Ignore_Error    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    120
+    Sleep    60

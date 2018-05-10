@@ -1,0 +1,268 @@
+*** Settings ***
+Resource          ../../ProjectResource_Envirement.txt
+
+*** Test Cases ***
+1.3.6.1 Devices Page Test
+    #Not Used
+    Log    The case is canceled by newer firmware or spec!
+
+1.3.6.2 Data Usage Test
+    Test1.3.6.2_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.3.6.2_Step1 Log In
+    Test1.3.6.2_Step2 Data Usage Page Chart Panel Check
+    Test1.3.6.2_Step3 Data Usage Page Traffic Counter Panel Check
+    Test1.3.6.2_Step4 Data Usage Page Traffic Control Panel Check
+
+1.3.6.3 Logs Test
+    Test1.3.6.3_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.3.6.3_Step1 Log In
+    Test1.3.6.3_Step2 Check Logs Page
+
+1.3.6.4 Statistics Test
+    Test1.3.6.4_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.3.6.4_Step1 Log In
+    Test1.3.6.4_Step2 Check Statistics Page
+
+1.3.6.5 Saving Discarding Change Test
+    Test1.3.6.5_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.3.6.5_Step1 Log In
+    Test1.3.6.5_Step2 Check Info Bar
+
+*** Keywords ***
+Test1.3.6.2_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.3.6.2_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.3.6.2_Step2 Data Usage Page Chart Panel Check
+    Check_DataUsage_Chart_Panel
+
+Test1.3.6.2_Step3 Data Usage Page Traffic Counter Panel Check
+    Check_DataUsage_TrafficCounter_Panel
+
+Test1.3.6.2_Step4 Data Usage Page Traffic Control Panel Check
+    Check_DataUsage_TrafficControl_Panel
+
+Test1.3.6.3_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.3.6.3_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.3.6.3_Step2 Check Logs Page
+    Set_Internet_Mode_And_IP_DHCP
+    Check_Logs_Page
+
+Test1.3.6.4_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.3.6.4_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.3.6.4_Step2 Check Statistics Page
+    Check_Statistics_Page
+
+Test1.3.6.5_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.3.6.5_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.3.6.5_Step2 Check Info Bar
+    Check_Setting_Modified_Bar
+
+Check_Setting_Modified_Bar
+    FUNCTION_Goto_Advanced_Monitoring_DataUsage_Page
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='barSubmitApplying']    Applying changes...    False
+    ${Result}    CHECK_Element_Should_Contain_Text    div[id='barSubmitChanged']    The settings were modified. Would you like to apply the changes?    False
+    ${Result}    CHECK_Element_Should_Contain_Text    div[id='barSubmitRetry']    An error occurred while trying to apply the changes.    False
+    ${Result}    CHECK_Element_Should_Contain_Text    div[id='barSubmitApplied']    Changes applied.    False
+    ${Result}    CHECK_Element_Should_Contain_Text    div[id='barSubmitError']    An error occurred while trying to apply the changes.    False
+    ${Result}    CHECK_Element_Should_Contain_Text    div[id='barSubmitChangesDiscarded']    Changes discarded.    False
+    Switch_Checkbox
+    Click_Element    css=div[id='submitDiscardButton']
+    ${VP0}    Get Vertical Position    css=div[id='barSubmitChangesDiscarded']
+    CHECK_Wait_Until_Element_Should    div[id='barSubmitChangesDiscarded'] > div    True    30
+    : FOR    ${i}    IN RANGE    51
+    \    ${VP1}    Get Vertical Position    css=div[id='barSubmitChangesDiscarded']
+    \    ${T}    Evaluate    ${VP1}-132
+    \    Exit For Loop If    '${VP0}' == '${T}'
+    \    Run Keyword If    '${i}'=='50'    Fail
+    #CHECK_Wait_Until_Element_Should    div[id='barSubmitChangesDiscarded'] > div    False    30
+    Switch_Checkbox
+    Click_Element    css=div[id='submitApplyButton']
+    ${VP0}    Get Vertical Position    css=div[id='barSubmitApplied']
+    CHECK_Wait_Until_Element_Should    div[id='barSubmitApplied'] > div.submitMessage.int_SPSAP001    True    30
+    : FOR    ${i}    IN RANGE    51
+    \    ${VP1}    Get Vertical Position    css=div[id='barSubmitApplied']
+    \    ${T}    Evaluate    ${VP1}-132
+    \    Exit For Loop If    '${VP0}' == '${T}'
+    \    Run Keyword If    '${i}'=='50'    Fail
+    Sleep    60
+    #CHECK_Wait_Until_Element_Should    div[id='barSubmitApplied'] > div.submitMessage.int_SPSAP001    False    30
+
+Switch_Checkbox
+    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='advDataUsageChart'] > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12 > div.col-lg-5.col-md-5.col-sm-5 > div
+    ${re}    ${mess}    Run Keyword And Ignore Error    Should Contain    ${Attribute}    off
+    Run Keyword If    '${re}'=='PASS'    GUI_DIVCheckbox_Checked    div[id='advDataUsageChart'] > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12 > div.col-lg-5.col-md-5.col-sm-5 > div    On    False
+    Run Keyword If    '${re}'=='FAIL'    GUI_DIVCheckbox_Checked    div[id='advDataUsageChart'] > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12 > div.col-lg-5.col-md-5.col-sm-5 > div    Off    False
+
+Silde_Bar_Control
+    [Arguments]    ${Element}
+    ${Attribute}    COMMON_Get_Element_Attribute    style    ${Element}
+    Should Contain    ${Attribute}    none
+
+Check_Statistics_Page
+    FUNCTION_Goto_Advanced_Monitoring_Statistics_Page
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1.png
+    CHECK_Elements_Should_Show    True    div[id='advMonStatistics']>div:nth-child(1)    div[id='advMonStatistics']>div:nth-child(2)    div[id='advMonStatistics'] \ > div:nth-child(1) > div.ng-block-wrapper > div    div[id='advMonStatistics'] > div:nth-child(1) > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12.ng-table-wrapper    div[id='advMonStatistics'] \ > div:nth-child(2) > div.ng-block-wrapper > div
+    ...    div[id='advMonStatistics'] > div:nth-child(2) > div:nth-child(2) > div > div.ng-title.int_ARMS009    div[id='advMonStatistics'] > div:nth-child(2) > div:nth-child(2) > div > div.ng-label    div[id='advMonStatistics'] > div:nth-child(2) > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12.ng-table-wrapper
+    ${TextOld}    Get_Text    //*[@id="advMonStatistics"]/div[1]/div[2]/table/tbody/tr[3]/td[3]
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1(o).png
+    OperatingSystem.Run    python %{G_SQAROOT}\\ATE_BED\\R8500\\Tools\\pingWAN.py
+    ${TextNew}    Get_Text    //*[@id="advMonStatistics"]/div[1]/div[2]/table/tbody/tr[3]/td[3]
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1(n).png
+    ${Result}    Evaluate    '${TextNew}' <> '${TextOld}'
+    Should Be True    '${Result}'=='True'
+
+Check_Logs_Page
+    FUNCTION_Goto_Advanced_Monitoring_Logs_Page
+    #Data Usage Chart Panel Test
+    Scroll_To_Element    //*[@id="advLogs"]/div[1]
+    Sleep    2
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1(1).png
+    Sleep    5
+    Scroll_To_Element    //*[@id="advLogs"]/div[2]
+    Sleep    2
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1(2).png
+    Scroll_To_Element    //*[@id="advLogs"]/div[1]
+    Sleep    2
+    GUI_Click_Element_CSS    div[id='log_refresh_btn']
+    Wait Until Element Is Visible    css=div[id='advLogs']    timeout=30s
+    ${CountNum}    Get_Element_Count    //*[@id="advLogs"]/div[1]/div/div[5]/div[2]/div/div[1]/div
+    ${CountTen}    Get_Element_Count    //*[@id="advLogs"]/div[1]/div/div[5]/div[2]/div/div
+    GUI_Click_Element_CSS    div[id='log_clear_btn']
+    Sleep    50
+    Wait Until Element Is Visible    css=div[id='advLogs']    timeout=30s
+    ${CountNum}    Get_Element_Count    //*[@id="advLogs"]/div[1]/div/div[5]/div[2]/div/div[1]/div
+    ${CountTen}    Get_Element_Count    //*[@id="advLogs"]/div[1]/div/div[5]/div[2]/div/div
+    GUI_Click_Element_CSS    div[id='log_send_btn']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    If you want to send an e-mail notice, turn on e-mail notification on the E-mail screen
+    FUNCTION_Goto_Advanced_RouterStatus_Page
+    : FOR    ${i}    IN RANGE    6
+    \    Sleep    2
+    \    Click_Element    css=button[id='advRouterStatusBtnReleasenButton']
+    \    Wait_Until_Element_Is_Visible    css=div[id='modal-actionUpdate'] > div.modal-content > div.modal-body > div > span.spinner-wrapper > span    timeout=60s
+    \    Wait_Until_Element_Is_Not_Visible    css=div[id='modal-actionUpdate'] > div.modal-content > div.modal-body > div > span.spinner-wrapper > span    timeout=30s
+    \    Sleep    2
+    \    Click_Element    css=button[id='advRouterStatusBtnRenewButton']
+    \    Wait_Until_Element_Is_Visible    css=div[id='modal-actionUpdate'] > div.modal-content > div.modal-body > div > span.spinner-wrapper > span    timeout=60s
+    \    Wait_Until_Element_Is_Not_Visible    css=div[id='modal-actionUpdate'] > div.modal-content > div.modal-body > div > span.spinner-wrapper > span    timeout=30s
+    : FOR    ${j}    IN RANGE    10
+    \    FUNCTION_Goto_Advanced_Monitoring_Logs_Page
+    \    ${wResult}    ${wMess}    Run Keyword And Ignore Error    Wait Until Element Is Visible    //*[@id="pagination-numbers-wrapper"]/div[3]    timeout=30s
+    \    Run Keyword If    '${wResult}'=='PASS'    Exit_For_Loop
+    ${CountNum}    Get_Element_Count    //*[@id="advLogs"]/div[1]/div/div[5]/div[2]/div/div[1]/div
+    ${CountTen}    Get_Element_Count    //*[@id="advLogs"]/div[1]/div/div[5]/div[2]/div/div
+    ${CountNums}    Run Keyword If    ${CountTen} > 1    Get_Element_Count    //*[@id="advLogs"]/div[1]/div/div[5]/div[2]/div/div[last()]/div
+    ${NumberofLogs}    Evaluate    (${CountTen} - 1)*10 + ${CountNums}
+    ${R}    ${Message}    Run Keyword and Ignore Error    Get_Text    //*[@id="pagination-numbers-wrapper"]/div[3]
+    ${Result}    Evaluate    ${NumberofLogs}==${Message}
+    GUI_DIVCheckbox_Foreach    True    div[id='intAttemptedAccessToAllowedSites']    div[id='intAttemptedAccessToBlockSitesAndServices']    div[id='intConnectionsToTheWebBasedInterface']    div[id='intRouterOperation']    div[id='intKnownDoSAttacksAndPortScans']
+    ...    div[id='intPortForwardingPortTriggering']    div[id='intWirelessAccess']    div[id='intAutomaticInternetConnectionReset']    div[id='intTurnOffWirelessSignalBySchedule']
+
+Check_DataUsage_Chart_Panel
+    FUNCTION_Goto_Advanced_Monitoring_DataUsage_Page
+    #Data Usage Chart Panel Test
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1(1).png
+    CHECK_Elements_Should_Show    False    div[id='advtduChartWrapper']    div[id='advtduChartFooter']
+    GUI_Dropdownlist_Choise_Text    button[id='ddmAdvTDUPeriod']    Last Month    False
+    ${Text}    COMMON_Get_Element_Text    span[id='ddmAdvTDUPeriodLabel']    False
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1(1-1).png
+    GUI_Dropdownlist_Choise_Text    button[id='ddmAdvTDUPeriod']    This Month    False
+    ${Text}    COMMON_Get_Element_Text    span[id='ddmAdvTDUPeriodLabel']    False
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1(1-2).png
+    GUI_Dropdownlist_Choise_Text    button[id='ddmAdvTDUPeriod']    This Week    False
+    ${Text}    COMMON_Get_Element_Text    span[id='ddmAdvTDUPeriodLabel']    False
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1(1-3).png
+
+Check_DataUsage_TrafficCounter_Panel
+    FUNCTION_Goto_Advanced_Monitoring_DataUsage_Page
+    #Data Usage Traffic Counter Panel Test
+    COMMON_Scroll_To_Element    div[id='advDataUsageTrafficCounter']
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1(2).png
+    COMMON_Input_Text    input[id='advDataUsageTrafficCounterrestartHour']    25
+    COMMON_Input_Text    input[id='advDataUsageTrafficCounterrestartMin']    61
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    Please enter valid number ( 0 - 12 )
+    COMMON_Input_Text    input[id='advDataUsageTrafficCounterrestartHour']    10
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    Please enter valid number ( 0 - 59 )
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1(2).png
+    GUI_Dropdownlist_Foreach    button[id='ddmAdvTDURestartDay']    False
+
+Check_DataUsage_TrafficControl_Panel
+    FUNCTION_Goto_Advanced_Monitoring_DataUsage_Page
+    #Data Usage Traffic Control Panel Test
+    Scroll_To_Element    //*[@id="advMonDU"]/div/div[3]
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1(3).png
+    GUI_Radiobutton_Choise_BySnum    div[id='dataUsageControlTrafficBy']    2    True
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    The data usage cannot control traffic by time
+    GUI_Dropdownlist_Foreach    button[id='ddmAdvTDULimit']    False
+    COMMON_Input_Text    input[id='monthLimitInput']    1048577
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    Please enter valid number ( 0 - 1048576 )
+    COMMON_Input_Text    input[id='monthLimitInput']    500
+    ####
+    COMMON_Input_Text    input[id='warnBeforeReachInput']    99999
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    Watermark value must be less than the monthly limit
+    COMMON_Input_Text    input[id='warnBeforeReachInput']    50
+    ###
+    GUI_DIVCheckbox_Foreach    True    div[id='intEnabledataUsageTurnLEDTime']    div[id='intEnabledataUsageInternetConnectionTime']
+    ####################
+    Scroll_To_Element    //*[@id="advDataUsageChart"]
+    ${TextOld}    Get_Text    //*[@id="advtduChartFooterTotal"]/span[1]
+    OperatingSystem.Run    python %{G_SQAROOT}\\ATE_BED\\R8500\\Tools\\pingWAN.py
+    FUNCTION_Goto_Advanced_Monitoring_DataUsage_Page
+    ${TextNew}    Get_Text    //*[@id="advtduChartFooterTotal"]/span[1]
+    Should Not Be Equal    ${TextNew}    ${TextOld}
+
+Set_Internet_Mode_And_IP_DHCP
+    FUNCTION_Goto_Advanced_Setup_Internet_Page
+    GUI_Click_Element_CSS    ul[id='internetSetupHeader']>li:nth-child(1)>a>div
+    GUI_Radiobutton_Foreach    div[id='internetSetupContainer'] > div > div > div.panel_0.tabPanel.col-lg-12.col-md-12.col-xs-12.active > div.ng-block-wrapper > div:nth-child(2) > div    False
+    GUI_Radiobutton_Choise_BySnum    div[id='internetSetupContainer'] > div > div > div.panel_0.tabPanel.col-lg-12.col-md-12.col-xs-12.active > div.ng-block-wrapper > div:nth-child(2) > div    2    False
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    30
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    90
+    Sleep    90
+    GUI_Click_Element_CSS    ul[id='internetSetupHeader']>li:nth-child(2)>a>div
+    GUI_Radiobutton_Foreach    div[id='internetIpAddressIpAddressDiv']    False
+    GUI_Radiobutton_Choise_BySnum    div[id='internetIpAddressIpAddressDiv']    1    False
+    Run Keyword And Ignore Error    GUI_Radiobutton_Choise_BySnum    div[id='internetIpAddressDomainNameServerDNS']    1    False
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    30
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    90
+    Sleep    90

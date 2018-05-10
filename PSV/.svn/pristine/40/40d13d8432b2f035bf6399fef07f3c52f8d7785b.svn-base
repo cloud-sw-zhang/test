@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><SOAP-ENV:Envelope
+xmlns:SOAPSDK1="http://www.w3.org/2001/XMLSchema"
+xmlns:SOAPSDK2="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:SOAPSDK3="http://schemas.xmlsoap.org/soap/encoding/"
+xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"><SOAP-ENV:Body><M1:ConfigurationStarted
+xmlns:M1="urn:NETGEAR-ROUTER:service:DeviceConfig:1"><NewSessionID>E6A88AE69687E58D9A00</NewSessionID></M1:ConfigurationStarted></SOAP-ENV:Body></SOAP-ENV:Envelope>

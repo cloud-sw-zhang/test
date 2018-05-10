@@ -1,0 +1,1344 @@
+*** Settings ***
+Resource          ../../ProjectResource_Envirement.txt
+
+*** Test Cases ***
+1.3.7.1 Advanced Wireless Page
+    Test1.3.7.1_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.3.7.1_Step1 Log In
+    Test1.3.7.1_Step2 Before Smart Connect On Check The Wireless Setting Tab
+    Test1.3.7.1_Step3 After Smart Connect On Check The Wireless Setting Tab
+    Test1.3.7.1_Step4 Before Smart Connect On Check The Schedule Setting Tab
+    Test1.3.7.1_Step5 After Smart Connect On Check The Schedule Setting Tab
+    Test1.3.7.1_Step6 Check The Schedule Function
+
+1.3.7.2 Port Forwarding Page
+    Test1.3.7.2_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.3.7.2_Step1 Log In
+    Test1.3.7.2_Step2 Port Forwarding Error Input Check
+    Test1.3.7.2_Step3 Add PortForwarding Rule And Check Result
+    Test1.3.7.2_Step3 Edit PortForwarding Rule And Check Result
+
+1.3.7.3 Port Triggering Page
+    Test1.3.7.3_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.3.7.3_Step1 Log In
+    Test1.3.7.3_Step2 Port Triggering Error Input Check
+    Test1.3.7.3_Step3 Add 3 Diferent Port Triggering Rule And Check Result
+
+1.3.7.4 DDNS Page
+    Test1.3.7.4_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.3.7.4_Step1 Log In
+    Test1.3.7.4_Step2 DDNS ISA Netgear
+    Test1.3.7.4_Step3 DDNS ISA NoIP
+    Test1.3.7.4_Step4 DDNS ISA DynDNS
+
+1.3.7.5 VPN Service Page
+    Test1.3.7.5_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.3.7.5_Step1 Log In
+    Test1.3.7.5_Step2 VPN Service Page
+
+1.3.7.6 Static Routers Page
+    Test1.3.7.6_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.3.7.6_Step1 Log In
+    Test1.3.7.6_Step2 Add Static Route Rule Check
+    Test1.3.7.6_Step3 Edit Static Route Rule Check
+
+1.3.7.7 Remote Management Page
+    Test1.3.7.7_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.3.7.7_Step1 Log In
+    Test1.3.7.7_Step2 Remote Management Page LocalSetting Check
+    Test1.3.7.7_Step2 Remote Management Page RemoteSetting Check
+
+1.3.7.8 UPnP Page
+    Test1.3.7.8_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.3.7.8_Step1 Log In
+    Test1.3.7.8_Step2 UPnP Page
+
+1.3.7.9 IPv6 Page
+    Test1.3.7.9_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.3.7.10_Step1 Log In
+    Test1.3.7.9_Step2 IPv6 Page Main
+    Test1.3.7.9_Step3 IPv6 Page Auto Detect Tab
+    Test1.3.7.9_Step4 IPv6 Page 6to4 Tab
+    Test1.3.7.9_Step5 IPv6 Page Pass Through Tab
+    Test1.3.7.9_Step6 IPv6 Page Fixed Tab
+    Test1.3.7.9_Step7 IPv6 Page DHCP Tab
+    Test1.3.7.9_Step8 IPv6 Page PPPoE Tab
+    Test1.3.7.9_Step9 IPv6 Page Auto Config Tab
+    Test1.3.7.9_Step10 IPv6 Page 6rd Tunnel Tab
+
+1.3.7.10 WPS Setting Page
+    Test1.3.7.10_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.3.7.10_Step1 Log In
+    Test1.3.7.10_Step2 WPS Setting Page
+
+1.3.7.11 VLAN Setting Page
+    Test1.3.7.11_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.3.7.11_Step1 Log In
+    Test1.3.7.11_Step2 VLAN Setting Page
+
+*** Keywords ***
+Test1.3.7.1_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.3.7.1_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.3.7.1_Step2 Before Smart Connect On Check The Wireless Setting Tab
+    FUNCTION_Switch_Smart_Connect    Off
+    Check_Advance_Wireless_Page_Setting_Tab    Off
+
+Test1.3.7.1_Step3 After Smart Connect On Check The Wireless Setting Tab
+    FUNCTION_Switch_Smart_Connect    On
+    Check_Advance_Wireless_Page_Setting_Tab    On
+
+Test1.3.7.1_Step4 Before Smart Connect On Check The Schedule Setting Tab
+    FUNCTION_Switch_Smart_Connect    Off
+    Check_Advance_Wireless_Page_Schedule_Tab    Off
+
+Test1.3.7.1_Step5 After Smart Connect On Check The Schedule Setting Tab
+    FUNCTION_Switch_Smart_Connect    On
+    Check_Advance_Wireless_Page_Schedule_Tab    On
+
+Test1.3.7.1_Step6 Check The Schedule Function
+    FUNCTION_Switch_Smart_Connect    Off
+    Check_Advance_Wireless_Page_Schedule_ScheFunction
+
+Test1.3.7.2_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.3.7.2_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.3.7.2_Step2 Port Forwarding Error Input Check
+    Check_Page_When_Error_Input_PortForwarding_Rules
+
+Test1.3.7.2_Step3 Add PortForwarding Rule And Check Result
+    Check_Add_PortForwarding_Rule_And_The_Result
+
+Test1.3.7.2_Step3 Edit PortForwarding Rule And Check Result
+    Check_Edit_PortForwarding_Rule_And_The_Result
+
+Test1.3.7.3_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.3.7.3_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.3.7.3_Step2 Port Triggering Error Input Check
+    Check_PortTriggering_Page_When_Input_Error
+
+Test1.3.7.3_Step3 Add 3 Diferent Port Triggering Rule And Check Result
+    Check_Page_When_Add_3_PortTriggering_Rule
+
+Test1.3.7.4_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.3.7.4_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.3.7.4_Step2 DDNS ISA Netgear
+    FUNCTION_Goto_Advanced_AdvancedSettings_DDNS_Page
+    GUI_DIVCheckbox_Foreach    True    div[id='dynamicDNSEnable2']
+    GUI_DIVCheckbox_Checked    div[id='dynamicDNSEnable2']    On    True
+    GUI_Dropdownlist_Foreach    button[id='advASDynamicDNSdrop']    False
+    ##
+    GUI_Dropdownlist_Choise_Text    button[id='advASDynamicDNSdrop']    NETGEAR    False
+    #
+    GUI_Click_Element_CSS    button[id='RegisterButton']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    The password cannot be blank    60
+    #
+    COMMON_Input_Text    input[id='advASDynamicDNSPassword']    1
+    GUI_Click_Element_CSS    button[id='RegisterButton']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    The password length must be 6 to 32 characters    60
+    #
+    COMMON_Input_Text    input[id='advASDynamicDNSPassword']    111111111122222222223333333333444
+    GUI_Click_Element_CSS    button[id='RegisterButton']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    You must enter an email address    60
+    #
+    COMMON_Input_Text    input[id='advASDynamicDNSEmail']    2
+    GUI_Click_Element_CSS    button[id='RegisterButton']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    Invalid character in the email address    60
+    #
+    COMMON_Input_Text    input[id='advASDynamicDNSEmail']    1111111111222222222233333333334444444444@5555.com
+    GUI_Click_Element_CSS    button[id='RegisterButton']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    You must enter a host name    60
+    #
+    COMMON_Input_Text    input[id='advASDynamicDNSHostName']    11111111112222222222333333333344444444445555555555666666666677777777778888888888999999999900000000001111111111122222
+    GUI_Click_Element_CSS    button[id='RegisterButton']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    DDNS netgear login failed    60
+    #####
+    GUI_Click_Element_CSS    a[id='signUpAlink']
+    Wait_Until_Element_Is_Visible    css=div[id='modal-signInDynamicDNS']    timeout=30s
+    GUI_Click_Element_CSS    a[id='signInDynamicDNSSignUp']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    The password cannot be blank    60
+    COMMON_Input_Text    input[id='signInDynamicDNSPassword']    1
+    GUI_Click_Element_CSS    a[id='signInDynamicDNSSignUp']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    The password length must be 6 to 32 characters    60
+    COMMON_Input_Text    input[id='signInDynamicDNSPassword']    password
+    GUI_Click_Element_CSS    a[id='signInDynamicDNSSignUp']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    You must enter an email address    60
+    COMMON_Input_Text    input[id='signInDynamicDNSTextEmail']    1
+    GUI_Click_Element_CSS    a[id='signInDynamicDNSSignUp']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    Invalid character in the email address    60
+    COMMON_Input_Text    input[id='signInDynamicDNSTextEmail']    1@1.com
+    GUI_Click_Element_CSS    a[id='signInDynamicDNSSignUp']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    You must enter a host name    60
+    COMMON_Input_Text    input[id='signInDynamicDNSHostName']    a
+    GUI_Click_Element_CSS    a[id='signInDynamicDNSSignUp']
+    GUI_Click_Element_CSS    a[id='signInDynamicDNSCancel']
+    Wait_Until_Element_Is_Not_Visible    css=div[id='modal-signInDynamicDNS']    timeout=30s
+    COMMON_Select_Window    %{U_WEB_HTTP_TITLE}
+    GUI_Click_Element_CSS    a[id='forgotMyPaswordAlink']
+    COMMON_Select_Window    NEW
+    Close Window
+    COMMON_Select_Window    %{U_WEB_HTTP_TITLE}
+    GUI_Click_Element_CSS    a[id='manageMyDnsAccountAlink']
+    COMMON_Select_Window    NEW
+    Close Window
+    COMMON_Select_Window    %{U_WEB_HTTP_TITLE}
+    Sleep    10
+
+Test1.3.7.4_Step3 DDNS ISA NoIP
+    FUNCTION_Goto_Advanced_AdvancedSettings_DDNS_Page
+    GUI_DIVCheckbox_Foreach    True    div[id='dynamicDNSEnable2']
+    GUI_Dropdownlist_Choise_Text    button[id='advASDynamicDNSdrop']    NoIP.com    False
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    The password cannot be blank    60
+    #
+    COMMON_Input_Text    input[id='advASDynamicDNSPassword']    1
+    GUI_Click_Element_CSS    div[id='advASDynamicDNS']
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    The username cannot be blank    60
+    #
+    COMMON_Input_Text    input[id='advASDynamicDNSEmail']    1
+    GUI_Click_Element_CSS    div[id='advASDynamicDNS']
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    You must enter a host name    60
+    #
+    COMMON_Input_Text    input[id='advASDynamicDNSHostName']    1
+    GUI_Click_Element_CSS    div[id='advASDynamicDNS']
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    Sleep    60
+
+Test1.3.7.4_Step4 DDNS ISA DynDNS
+    FUNCTION_Goto_Advanced_AdvancedSettings_DDNS_Page
+    GUI_DIVCheckbox_Foreach    True    div[id='dynamicDNSEnable2']
+    GUI_Dropdownlist_Choise_Text    button[id='advASDynamicDNSdrop']    DynDNS.org    False
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    The password cannot be blank    60
+    #
+    COMMON_Input_Text    input[id='advASDynamicDNSPassword']    1
+    GUI_Click_Element_CSS    div[id='advASDynamicDNS']
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    You must enter an email address    60
+    #
+    COMMON_Input_Text    input[id='advASDynamicDNSEmail']    1
+    GUI_Click_Element_CSS    div[id='advASDynamicDNS']
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    You must enter a host name    60
+    COMMON_Input_Text    input[id='advASDynamicDNSHostName']    1
+    GUI_Click_Element_CSS    div[id='advASDynamicDNS']
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    Sleep    30
+    ${Message}    COMMON_Get_Element_Text    div[id='DDNSNotenable1'] > span    True
+    ##
+    GUI_DIVCheckbox_Checked    div[id='dynamicDNSEnable2']    Off    True
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    Sleep    60
+
+Test1.3.7.5_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.3.7.5_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.3.7.5_Step2 VPN Service Page
+    Check_VPN_Service_Page
+
+Test1.3.7.6_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.3.7.6_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.3.7.6_Step2 Add Static Route Rule Check
+    Check_Add_Static_Route_Rule
+
+Test1.3.7.6_Step3 Edit Static Route Rule Check
+    Check_Edit_Static_Route_Rule
+
+Test1.3.7.7_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.3.7.7_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.3.7.7_Step2 Remote Management Page LocalSetting Check
+    Check_Local_Managerment_Setting
+
+Test1.3.7.7_Step2 Remote Management Page RemoteSetting Check
+    Check_Remote_Managerment_Setting
+
+Test1.3.7.8_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.3.7.8_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.3.7.8_Step2 UPnP Page
+    Check_UPnP_Page
+
+Test1.3.7.9_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.3.7.9_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.3.7.9_Step2 IPv6 Page Main
+    FUNCTION_Goto_Advanced_AdvancedSettings_IPv6_Page
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1.png
+
+Test1.3.7.9_Step3 IPv6 Page Auto Detect Tab
+    FUNCTION_Goto_Advanced_AdvancedSettings_IPv6_Page
+    #Auto Detect
+    GUI_Dropdownlist_Choise_Text    button[id='ddmIPV6setting']    Auto Detect    False
+    CHECK_Elements_Should_Show    False    div[id='ASIPV6Panelautodetect']
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-2.png
+
+Test1.3.7.9_Step4 IPv6 Page 6to4 Tab
+    FUNCTION_Goto_Advanced_AdvancedSettings_IPv6_Page
+    #6to4 Tunnel
+    GUI_Dropdownlist_Choise_Text    button[id='ddmIPV6setting']    6to4 Tunnel    False
+    CHECK_Elements_Should_Show    False    div[id='ASIPV6Panel6to4tunnel']
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-3.png
+
+Test1.3.7.9_Step5 IPv6 Page Pass Through Tab
+    FUNCTION_Goto_Advanced_AdvancedSettings_IPv6_Page
+    #Pass Through
+    GUI_Dropdownlist_Choise_Text    button[id='ddmIPV6setting']    Pass Through    False
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-4.png
+
+Test1.3.7.9_Step6 IPv6 Page Fixed Tab
+    FUNCTION_Goto_Advanced_AdvancedSettings_IPv6_Page
+    #Fixed
+    GUI_Dropdownlist_Choise_Text    button[id='ddmIPV6setting']    Fixed    False
+    CHECK_Elements_Should_Show    False    div[id='ASIPV6Panelfixed']
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-5.png
+
+Test1.3.7.9_Step7 IPv6 Page DHCP Tab
+    FUNCTION_Goto_Advanced_AdvancedSettings_IPv6_Page
+    #DHCP
+    GUI_Dropdownlist_Choise_Text    button[id='ddmIPV6setting']    DHCP    False
+    CHECK_Elements_Should_Show    False    div[id='ASIPV6Paneldhcp']
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-6.png
+
+Test1.3.7.9_Step8 IPv6 Page PPPoE Tab
+    FUNCTION_Goto_Advanced_AdvancedSettings_IPv6_Page
+    #PPPoE
+    GUI_Dropdownlist_Choise_Text    button[id='ddmIPV6setting']    PPPoE    False
+    CHECK_Elements_Should_Show    False    div[id='ASIPV6Panelpppoe']
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-7.png
+
+Test1.3.7.9_Step9 IPv6 Page Auto Config Tab
+    FUNCTION_Goto_Advanced_AdvancedSettings_IPv6_Page
+    #Auto Config
+    GUI_Dropdownlist_Choise_Text    button[id='ddmIPV6setting']    Auto Config    False
+    CHECK_Elements_Should_Show    False    div[id='ASIPV6Panelautoconfig']
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-8.png
+
+Test1.3.7.9_Step10 IPv6 Page 6rd Tunnel Tab
+    FUNCTION_Goto_Advanced_AdvancedSettings_IPv6_Page
+    #6rd Tunnel
+    GUI_Dropdownlist_Choise_Text    button[id='ddmIPV6setting']    6rd Tunnel    False
+    CHECK_Elements_Should_Show    False    div[id='ASIPV6Panel6rdtunnel']
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-9.png
+
+Test1.3.7.10_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.3.7.10_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.3.7.10_Step2 WPS Setting Page
+    Check_WPS_Setting_Page
+
+Test1.3.7.11_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.3.7.11_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.3.7.11_Step2 VLAN Setting Page
+    Disable_Guest_Network
+    Check_Vlan_Setting_IState
+    Enable_Guest_Network
+    Check_Vlan_Setting_LState
+    Disable_Guest_Network
+    Check_Vlan_Setting_VLAN_Group_IState
+    Enable_Guest_Network
+    Check_Vlan_Setting_VLAN_Group_LState
+    Check_Vlan_Setting_VLAN_Group_Rest
+    Disable_Guest_Network
+
+Check_Advance_Wireless_Page_Setting_Tab
+    [Arguments]    ${Smart}
+    FUNCTION_Goto_Advanced_AdvancedSettings_Wireless_Page
+    GUI_Click_Element_CSS    ul[id='advASAdvancedWirelessHeader']>li:nth-child(1)>a
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1.png
+    Run Keyword If    '${Smart}'=='Off'    Check_Advance_Wireless_Page_Setting_Tab_2G
+    Run Keyword If    '${Smart}'=='Off'    Check_Advance_Wireless_Page_Setting_Tab_5G1
+    Run Keyword If    '${Smart}'=='Off'    Check_Advance_Wireless_Page_Setting_Tab_5G2
+    Run Keyword If    '${Smart}'=='Off'    Check_Advance_Wireless_Page_Setting_Tab_Others
+    Run Keyword If    '${Smart}'=='On'    Check_Advance_Wireless_Page_Setting_Tab_2G
+    Run Keyword If    '${Smart}'=='On'    Check_Advance_Wireless_Page_Setting_Tab_5G1+2
+    Run Keyword If    '${Smart}'=='On'    Check_Advance_Wireless_Page_Setting_Tab_Others
+
+Check_Advance_Wireless_Page_Setting_Tab_2G
+    COMMON_Scroll_To_Element    div[id='advASAdvancedWireless_24GHz']
+    GUI_DIVCheckbox_Foreach    False    div[id='usbDownloaderEnable24GHz']    div[id='usbDownloaderEnable2040Coexistence']
+    COMMON_Input_Text    input[id='advASAdvancedWirelessFragment_24GHz']    ${EMPTY}
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    The input cannot be empty
+    COMMON_Input_Text    input[id='advASAdvancedWirelessFragment_24GHz']    2347
+    GUI_Click_Element_CSS    div[id='advASAdvancedWireless']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='advASAdvancedWirelessFragment_24GHz']    2346    False
+    Should Be True    '${Result}'=='PASS'
+    COMMON_Input_Text    input[id='advASAdvancedWirelessCTSRTS_24GHz']    ${EMPTY}
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    The input cannot be empty
+    COMMON_Input_Text    input[id='advASAdvancedWirelessCTSRTS_24GHz']    2348
+    GUI_Click_Element_CSS    div[id='advASAdvancedWireless']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='advASAdvancedWirelessCTSRTS_24GHz']    2347    False
+    Should Be True    '${Result}'=='PASS'
+    #GUI_Dropdownlist_Foreach    button[id='advASAdvancedWirelessPreamble_24GHz']    False
+
+Check_Advance_Wireless_Page_Setting_Tab_5G1
+    COMMON_Scroll_To_Element    div[id='advASAdvancedWireless_5GHz1']
+    GUI_DIVCheckbox_Foreach    False    div[id='usbDownloaderEnable5GHz1']
+    COMMON_Input_Text    input[id='advASAdvancedWirelessFragment_5GHz1']    ${EMPTY}
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    The input cannot be empty
+    COMMON_Input_Text    input[id='advASAdvancedWirelessFragment_5GHz1']    2347
+    GUI_Click_Element_CSS    div[id='advASAdvancedWireless']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='advASAdvancedWirelessFragment_5GHz1']    2346    False
+    Should Be True    '${Result}'=='PASS'
+    COMMON_Input_Text    input[id='advASAdvancedWirelessCTSRTS_5GHz1']    ${EMPTY}
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    The input cannot be empty
+    COMMON_Input_Text    input[id='advASAdvancedWirelessCTSRTS_5GHz1']    2348
+    GUI_Click_Element_CSS    div[id='advASAdvancedWireless']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='advASAdvancedWirelessCTSRTS_5GHz1']    2347    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Dropdownlist_Foreach    button[id='advASAdvancedWirelessPreamble_5GHz1']    True
+
+Check_Advance_Wireless_Page_Setting_Tab_5G2
+    COMMON_Scroll_To_Element    div[id='advASAdvancedWireless_5GHz2']
+    GUI_DIVCheckbox_Foreach    False    div[id='usbDownloaderEnable5GHz2']
+    COMMON_Input_Text    input[id='advASAdvancedWirelessFragment_5GHz2']    ${EMPTY}
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    The input cannot be empty
+    COMMON_Input_Text    input[id='advASAdvancedWirelessFragment_5GHz2']    2347
+    GUI_Click_Element_CSS    div[id='advASAdvancedWireless']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='advASAdvancedWirelessFragment_5GHz2']    2346    False
+    Should Be True    '${Result}'=='PASS'
+    COMMON_Input_Text    input[id='advASAdvancedWirelessCTSRTS_5GHz2']    ${EMPTY}
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    The input cannot be empty
+    COMMON_Input_Text    input[id='advASAdvancedWirelessCTSRTS_5GHz2']    2348
+    GUI_Click_Element_CSS    div[id='advASAdvancedWireless']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='advASAdvancedWirelessCTSRTS_5GHz2']    2347    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Dropdownlist_Foreach    button[id='advASAdvancedWirelessPreamble_5GHz2']    True
+
+Check_Advance_Wireless_Page_Setting_Tab_5G1+2
+    COMMON_Scroll_To_Element    div[id='advASAdvancedWireless_5GHz1_5GHz2']
+    #GUI_DIVCheckbox_Foreach    False    div[id='usbDownloaderEnable5GHz']
+    COMMON_Input_Text    input[id='advASAdvancedWirelessFragment_5GHz1_5GHz2']    ${EMPTY}
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    The input cannot be empty
+    COMMON_Input_Text    input[id='advASAdvancedWirelessFragment_5GHz1_5GHz2']    2347
+    GUI_Click_Element_CSS    div[id='advASAdvancedWireless']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='advASAdvancedWirelessFragment_5GHz1_5GHz2']    2346    False
+    Should Be True    '${Result}'=='PASS'
+    COMMON_Input_Text    input[id='advASAdvancedWirelessCTSRTS_5GHz1_5GHz2']    ${EMPTY}
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    The input cannot be empty
+    COMMON_Input_Text    input[id='advASAdvancedWirelessCTSRTS_5GHz1_5GHz2']    2348
+    GUI_Click_Element_CSS    div[id='advASAdvancedWireless']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='advASAdvancedWirelessCTSRTS_5GHz1_5GHz2']    2347    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Dropdownlist_Foreach    button[id='advASAdvancedWirelessPreamble_5GHz1_5GHz2']    False
+
+Check_Advance_Wireless_Page_Setting_Tab_Others
+    COMMON_Scroll_To_Element    div[id='advASAdvancedWirelessContainer'] > div > div > div.panel_0.tabPanel.col-lg-12.col-md-12.col-xs-12.active > div:nth-child(5)
+    GUI_DIVCheckbox_Foreach    False    div[id='usbDownloaderEnableBeamforming']    div[id='USBDownloaderEnableAirtimeFairness']    div[id='usbDownloaderEnableMUMIMO']
+
+Check_Advance_Wireless_Page_Schedule_Tab
+    [Arguments]    ${Smart}
+    FUNCTION_Goto_Advanced_AdvancedSettings_Wireless_Page
+    GUI_Click_Element_CSS    ul[id='advASAdvancedWirelessHeader']>li:nth-child(2)>a
+    CHECK_Elements_Should_Show    False    div[id='advASAdvancedWirelessContainer'] > div > div > div.panel_1.adv-ip-address.tabPanel.col-lg-12.col-md-12.col-xs-12.active
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-2.png
+    Run Keyword If    '${Smart}'=='Off'    GUI_DIVCheckbox_Foreach    False    div[id='usbDownloaderEnable24GHzWirelessSignalbySchedule']    div[id='usbDownloaderEnable5GHz1WirelessSignalbySchedule']    div[id='usbDownloaderEnable5GHz2WirelessSignalbySchedule']
+    Run Keyword If    '${Smart}'=='On'    GUI_DIVCheckbox_Foreach    True    div[id='usbDownloaderEnable24GHzWirelessSignalbySchedule']    div[id='usbDownloaderEnable5GHzWirelessSignalbySchedule']
+
+Check_Advance_Wireless_Page_Schedule_ScheFunction
+    FUNCTION_Goto_Advanced_AdvancedSettings_Wireless_Page
+    GUI_Click_Element_CSS    ul[id='advASAdvancedWirelessHeader']>li:nth-child(2)>a
+    #GUI_Click_Element_CSS    div[id='advWirelessSchedule'] > div.table-top-button.col-xs-4.btn.waves-effect.waves-gray > div:nth-child(1)    #bug now
+    #CHECK_Wait_Until_Element_Should    div[id='modal-wirelessScheApplyConfirm']    True    30    #bug now
+    #GUI_Click_Element_CSS    a[id='intCancelAlink6']    #bug now
+    #CHECK_Wait_Until_Element_Should    div[id='modal-wirelessScheApplyConfirm']    False    30    #bug now
+    #GUI_Click_Element_CSS    div[id='advWirelessSchedule'] > div.table-top-button.col-xs-4.btn.waves-effect.waves-gray > div:nth-child(1)    #bug now
+    #CHECK_Wait_Until_Element_Should    div[id='modal-wirelessScheApplyConfirm']    True    30    #bug now
+    #GUI_Click_Element_CSS    a[id='intYesWiFiSche']    #bug now
+    #Sleep    90    #bug now
+    #CHECK_Wait_Until_Element_Should    div[id='modal-wirelessScheApplyConfirm']    False    30    #bug now
+    GUI_Click_Element_CSS    div[id='advWirelessSchedule'] > div.table-top-button.col-xs-4.btn.waves-effect.waves-gray > div:nth-child(2)
+    CHECK_Wait_Until_Element_Should    div[id='modal-advASAdvancedWirelessContainerAdd']    True    30
+    GUI_Dropdownlist_Choise_Text    button[id='modal-advASAdvancedWirelessContainerAddButtton']    2.4GHz    False
+    COMMON_Input_Text    input[id='advASAdvancedWirelessContainerAddOffTimeNumber']    13
+    GUI_Click_Element_CSS    div[id='modal-advASAdvancedWirelessContainerAdd']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='advASAdvancedWirelessContainerAddOffTimeNumber']    12    False
+    Should Be True    '${Result}'=='PASS'
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    You cannot enter a number higher than 12
+    COMMON_Input_Text    input[id='addTurnOffMinute']    60
+    GUI_Click_Element_CSS    div[id='modal-advASAdvancedWirelessContainerAdd']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='addTurnOffMinute']    59    False
+    Should Be True    '${Result}'=='PASS'
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    You cannot enter a number higher than 59
+    GUI_Dropdownlist_Foreach    button[id='modal-advASAdvancedWirelessContainerAddTurnoff']    False
+    #
+    COMMON_Input_Text    input[id='advASAdvancedWirelessContainerAddOnTimeNumber']    13
+    GUI_Click_Element_CSS    div[id='modal-advASAdvancedWirelessContainerAdd']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='advASAdvancedWirelessContainerAddOnTimeNumber']    12    False
+    Should Be True    '${Result}'=='PASS'
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    You cannot enter a number higher than 12
+    COMMON_Input_Text    input[id='addTurnOnMinute']    60
+    GUI_Click_Element_CSS    div[id='modal-advASAdvancedWirelessContainerAdd']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='addTurnOnMinute']    59    False
+    Should Be True    '${Result}'=='PASS'
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    You cannot enter a number higher than 59
+    GUI_Dropdownlist_Foreach    button[id='modal-advASAdvancedWirelessContainerAddTurnon']    False
+    #
+    GUI_Click_Element_CSS    div[id='addSunday']
+    GUI_Click_Element_CSS    div[id='addSunday']
+    GUI_Click_Element_CSS    div[id='addMonday']
+    GUI_Click_Element_CSS    div[id='addMonday']
+    GUI_Click_Element_CSS    div[id='addTuesday']
+    GUI_Click_Element_CSS    div[id='addTuesday']
+    GUI_Click_Element_CSS    div[id='addWednesday']
+    GUI_Click_Element_CSS    div[id='addWednesday']
+    GUI_Click_Element_CSS    div[id='addThursday']
+    GUI_Click_Element_CSS    div[id='addThursday']
+    GUI_Click_Element_CSS    div[id='addFriday']
+    GUI_Click_Element_CSS    div[id='addFriday']
+    GUI_Click_Element_CSS    div[id='addSaturday']
+    GUI_Click_Element_CSS    div[id='addSaturday']
+    #
+    GUI_Click_Element_CSS    div[id='modaladvASAdvancedWirelessContainerAddCancel']
+    CHECK_Wait_Until_Element_Should    div[id='modal-advASAdvancedWirelessContainerAdd']    False    30
+    #
+    GUI_Click_Element_CSS    div[id='advWirelessSchedule'] > div.table-top-button.col-xs-4.btn.waves-effect.waves-gray > div:nth-child(2)
+    CHECK_Wait_Until_Element_Should    div[id='modal-advASAdvancedWirelessContainerAdd']    True    30
+    COMMON_Input_Text    input[id='advASAdvancedWirelessContainerAddOffTimeNumber']    10
+    COMMON_Input_Text    input[id='addTurnOffMinute']    00
+    GUI_Dropdownlist_Choise_Text    button[id='modal-advASAdvancedWirelessContainerAddTurnoff']    AM    False
+    COMMON_Input_Text    input[id='advASAdvancedWirelessContainerAddOnTimeNumber']    10
+    COMMON_Input_Text    input[id='addTurnOnMinute']    00
+    GUI_Dropdownlist_Choise_Text    button[id='modal-advASAdvancedWirelessContainerAddTurnon']    PM    False
+    GUI_Click_Element_CSS    div[id='modaladvASAdvancedWirelessContainerAddApply']
+    Sleep    60
+    CHECK_Wait_Until_Element_Should    div[id='modal-advASAdvancedWirelessContainerAdd']    False    30
+    CHECK_Wait_Until_Element_Should    div[id='table-ADV-wireless-radios-schedule'] > table > tbody > tr:nth-child(2)    True    30
+    GUI_Click_Element_CSS    a[id='wirelessScheduleTrashButton00']
+    CHECK_Wait_Page_Not_Contain    div[id='table-ADV-wireless-radios-schedule'] > table > tbody > tr:nth-child(2)    60
+
+Add_Porttrigging_Rule
+    [Arguments]    ${SName}    ${TPort}    ${TMode}    ${SPort}    ${EPort}    ${Imode}
+    ...    ${IP}
+    GUI_Click_Element_CSS    button#advASPortTriggeringAddButton
+    CHECK_Wait_Until_Element_Should    div[id='modal-addASPortTriggering']    True    30
+    Sleep    5
+    COMMON_Input_Text    input[id='addASPortTriggeringTextName']    ${SName}
+    GUI_Dropdownlist_Choise_Text    button[id='addASPortTriggeringTrigProt']    ${TMode}    False
+    COMMON_Input_Text    input[id='addASPortTriggeringTrigPort']    ${TPort}
+    COMMON_Input_Text    input[id='addASPortTriggeringStartPort']    ${SPort}
+    COMMON_Input_Text    input[id='addASPortTriggeringEndPort']    ${EPort}
+    Run Keyword If    '${IP}'<>'Any'    GUI_Dropdownlist_Choise_Text    button[id='addASPortTriggeringSIPType']    single IP address    False
+    Run Keyword If    '${IP}'<>'Any'    COMMON_Input_Text    input[id='addASPortTriggeringTextUIP']    ${IP}
+    Run Keyword If    '${IP}'=='Any'    GUI_Dropdownlist_Choise_Text    button[id='addASPortTriggeringSIPType']    any IP address    False
+    GUI_Dropdownlist_Choise_Text    button[id='buttonTcpUdp']    ${Imode}    False
+    GUI_Click_Element_CSS    a[id='addASPortTriggeringAdd']
+    CHECK_Wait_Until_Element_Should    div[id='modal-addASPortTriggering']    False    30
+
+Check_Vlan_Setting_IState
+    FUNCTION_Goto_Advanced_AdvancedSettings_VLAN_Page
+    GUI_DIVCheckbox_Checked    div[id='vlanIPTVSetupEnable']    On    False
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1.png
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupLan1']    True
+    Should Be True    '${Result}'=='Off'
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupLan2']    True
+    Should Be True    '${Result}'=='Off'
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupLan3']    True
+    Should Be True    '${Result}'=='Off'
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupLan4']    True
+    Should Be True    '${Result}'=='Off'
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupLan5']    True
+    Should Be True    '${Result}'=='Off'
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupLan6']    True
+    Should Be True    '${Result}'=='Off'
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='wlanIPTVSetupWirelessWifi24']    True
+    Should Be True    '${Result}'=='Off'
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupWirelessWifi51']    True
+    Should Be True    '${Result}'=='Off'
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupWirelessWifi52']    True
+    Should Be True    '${Result}'=='Off'
+
+Check_Vlan_Setting_LState
+    FUNCTION_Goto_Advanced_AdvancedSettings_VLAN_Page
+    GUI_DIVCheckbox_Checked    div[id='vlanIPTVSetupEnable']    On    False
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-2.png
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupLan1']    True
+    Should Be True    '${Result}'=='Off'
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupLan2']    True
+    Should Be True    '${Result}'=='Off'
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupLan3']    True
+    Should Be True    '${Result}'=='Off'
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupLan4']    True
+    Should Be True    '${Result}'=='Off'
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupLan5']    True
+    Should Be True    '${Result}'=='Off'
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupLan6']    True
+    Should Be True    '${Result}'=='Off'
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='wlanIPTVSetupWirelessWifi24']    True
+    Should Be True    '${Result}'=='Off'
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupWirelessWifi51']    True
+    Should Be True    '${Result}'=='Off'
+    ${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupWirelessWifi52']    True
+    Should Be True    '${Result}'=='Off'
+    #bug can not turn on guest network,even if turned on ,still show the below element
+    #${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupGuestWifi24']    True
+    #Should Be True    '${Result}'=='Off'
+    #${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupGuestWifi51']    True
+    #Should Be True    '${Result}'=='Off'
+    #${Result}    GUI_DIVCheckbox_Get_State    div[id='vlanIPTVSetupGuestWifi52']    True
+    #Should Be True    '${Result}'=='Off'
+
+Disable_Guest_Network
+    FUNCTION_Goto_Advanced_Setup_GuestNetwork_Page
+    GUI_DIVCheckbox_Checked    div[id='24GuestNetworkEnable']    Off    True
+    GUI_DIVCheckbox_Checked    div[id='intEnable51GuestNetwork']    Off    True
+    GUI_DIVCheckbox_Checked    div[id='intEnable52GuestNetwork']    Off    True
+    ${re}    ${Result}    Run Keyword And Ignore Error    CHECK_Elements_Should_Show    False    div[id='submitApplyButton']
+    Run Keyword If    '${re}'=='PASS'    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    ${re}    ${Result}    Run Keyword And Ignore Error    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    10
+    Run Keyword If    '${re}'=='PASS'    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    60
+    Sleep    30
+
+Enable_Guest_Network
+    FUNCTION_Goto_Advanced_Setup_GuestNetwork_Page
+    GUI_DIVCheckbox_Checked    div[id='24GuestNetworkEnable']    On    True
+    GUI_DIVCheckbox_Checked    div[id='intEnable51GuestNetwork']    On    True
+    GUI_DIVCheckbox_Checked    div[id='intEnable52GuestNetwork']    On    True
+    ${re}    ${Result}    Run Keyword And Ignore Error    CHECK_Elements_Should_Show    False    div[id='submitApplyButton']
+    Run Keyword If    '${re}'=='PASS'    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    ${re}    ${Result}    Run Keyword And Ignore Error    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    10
+    Run Keyword If    '${re}'=='PASS'    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    60
+    Sleep    30
+
+Check_Vlan_Setting_VLAN_Group_IState
+    FUNCTION_Goto_Advanced_AdvancedSettings_VLAN_Page
+    GUI_DIVCheckbox_Checked    div[id='vlanIPTVSetupEnable']    On    False
+    GUI_Dropdownlist_Choise_Text    button[id='ddmVLANIPTVButton']    VLAN Tag Group    False
+    CHECK_Elements_Should_Show    False    div[id='PanelVLANIPTVVLANTagGroup']    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(2)
+    CHECK_Elements_Should_Show    False    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(2) > td.nolabel-wiredGuest > span > span > span:nth-child(1)    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(2) > td.nolabel-wiredGuest > span > span > span:nth-child(2)    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(2) > td.nolabel-wiredGuest > span > span > span:nth-child(3)
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-3.png
+
+Check_Vlan_Setting_VLAN_Group_LState
+    FUNCTION_Goto_Advanced_AdvancedSettings_VLAN_Page
+    GUI_DIVCheckbox_Checked    div[id='vlanIPTVSetupEnable']    On    False
+    GUI_Dropdownlist_Choise_Text    button[id='ddmVLANIPTVButton']    VLAN Tag Group    False
+    CHECK_Elements_Should_Show    False    div[id='PanelVLANIPTVVLANTagGroup']    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(2)
+    CHECK_Elements_Should_Show    False    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(2) > td.nolabel-wiredGuest > span > span > span:nth-child(1)    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(2) > td.nolabel-wiredGuest > span > span > span:nth-child(2)    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(2) > td.nolabel-wiredGuest > span > span > span:nth-child(3)
+    #bug guest network is on,but the element is not show
+    #CHECK_Elements_Should_Show    False    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(2) > td.nolabel-wiredGuest > span > span > span:nth-child(4)    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(2) > td.nolabel-wiredGuest > span > span > span:nth-child(5)    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(2) > td.nolabel-wiredGuest > span > span > span:nth-child(6)
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-4.png
+
+Check_Vlan_Setting_VLAN_Group_Rest
+    FUNCTION_Goto_Advanced_AdvancedSettings_VLAN_Page
+    GUI_DIVCheckbox_Checked    div[id='vlanIPTVSetupEnable']    On    False
+    GUI_Dropdownlist_Choise_Text    button[id='ddmVLANIPTVButton']    VLAN Tag Group    False
+    Check_VLAN_Rule_Page
+    ${SName}    Set Variable    a
+    ${VLANid}    Set Variable    50
+    ${Priority}    Set Variable    1
+    ${LANPortL}    Set Variable    5
+    ${LANPortR}    Set Variable    5
+    ${WirelessL}    Set Variable    2
+    ${WirelessR}    Set Variable    3
+    Add_VLAN_Rule    ${SName}    ${VLANid}    ${Priority}    ${LANPortL}    ${LANPortR}    ${WirelessL}
+    ...    ${WirelessR}
+    #check
+    CHECK_Element_Should_Have_Text    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(3) > td.nolabel-nameVLANDID > div > div.ng-label    ${SName}    False
+    CHECK_Element_Should_Have_Text    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(3) > td.nolabel-nameVLANDID > div > div.ng-title    VLAN ID:${VLANid}    False
+    : FOR    ${i}    IN RANGE    ${LANPortL}    ${LANPortR}+1
+    \    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(3) > td.nolabel-wiredPorts > span > span:nth-child(${i})
+    \    Should Not Contain    ${Attribute}    disabled
+    : FOR    ${i}    IN RANGE    ${WirelessL}    ${WirelessR}+1
+    \    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(3) > td.nolabel-wiredGuest > span > span > span:nth-child(${i})
+    \    Should Not Contain    ${Attribute}    disabled
+    ####
+    ${SName}    Set Variable    b
+    ${VLANid}    Set Variable    88
+    ${Priority}    Set Variable    3
+    ${LANPortL}    Set Variable    4
+    ${LANPortR}    Set Variable    6
+    ${WirelessL}    Set Variable    1
+    ${WirelessR}    Set Variable    3
+    Edit_VLAN_Rule    ${SName}    ${VLANid}    ${Priority}    ${LANPortL}    ${LANPortR}    ${WirelessL}
+    ...    ${WirelessR}
+    CHECK_Element_Should_Have_Text    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(3) > td.nolabel-nameVLANDID > div > div.ng-label    ${SName}    False
+    CHECK_Element_Should_Have_Text    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(3) > td.nolabel-nameVLANDID > div > div.ng-title    VLAN ID:${VLANid}    False
+    : FOR    ${i}    IN RANGE    ${LANPortL}    ${LANPortR}+1
+    \    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(3) > td.nolabel-wiredPorts > span > span:nth-child(${i})
+    \    Should Not Contain    ${Attribute}    disabled
+    : FOR    ${i}    IN RANGE    ${WirelessL}    ${WirelessR}+1
+    \    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(3) > td.nolabel-wiredGuest > span > span > span:nth-child(${i})
+    \    Should Not Contain    ${Attribute}    disabled
+
+Check_VLAN_Rule_Page
+    GUI_Click_Element_CSS    button[id='PanelVLANIPTVVLANTagGroupAddRule']
+    CHECK_Wait_Until_Element_Should    div[id='modal-addVLANIPTVSetup']    True    30
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-5.png
+    #CHECK_Textinput
+    COMMON_Input_Text    input[id='addVLANIPTVSetupInputTextName']    a
+    GUI_Click_Element_CSS    a[id='addVLANIPTVSetupAdd']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    The input cannot be empty
+    #
+    COMMON_Input_Text    input[id='addVLANIPTVSetupInputNumberVlanID']    0
+    GUI_Click_Element_CSS    div[id='modal-addVLANIPTVSetup']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    You cannot enter a number lower than 1
+    CHECK_Element_Should_Have_Text    input[id='addVLANIPTVSetupInputNumberVlanID']    1    False
+    #
+    COMMON_Input_Text    input[id='addVLANIPTVSetupInputNumberVlanID']    4095
+    GUI_Click_Element_CSS    div[id='modal-addVLANIPTVSetup']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    You cannot enter a number higher than 4094
+    CHECK_Element_Should_Have_Text    input[id='addVLANIPTVSetupInputNumberVlanID']    4094    False
+    ##
+    COMMON_Input_Text    input[id='addVLANIPTVSetupInputNumberPriority']    8
+    GUI_Click_Element_CSS    div[id='modal-addVLANIPTVSetup']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    You cannot enter a number higher than 7
+    CHECK_Element_Should_Have_Text    input[id='addVLANIPTVSetupInputNumberPriority']    7    False
+    ###
+    GUI_Click_Element_CSS    a[id='addVLANIPTVSetupCancel']
+    CHECK_Wait_Until_Element_Should    div[id='modal-addVLANIPTVSetup']    False    30
+
+Add_VLAN_Rule
+    [Arguments]    ${SName}    ${VLANid}    ${Priority}    ${LANPortRangeL}    ${LANPortRangeR}    ${WirelessRangeL}
+    ...    ${WirelessRangeR}
+    GUI_Click_Element_CSS    button[id='PanelVLANIPTVVLANTagGroupAddRule']
+    CHECK_Wait_Until_Element_Should    div[id='modal-addVLANIPTVSetup']    True    30
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-5.png
+    #CHECK_Textinput
+    COMMON_Input_Text    input[id='addVLANIPTVSetupInputTextName']    ${SName}
+    COMMON_Input_Text    input[id='addVLANIPTVSetupInputNumberVlanID']    ${VLANid}
+    COMMON_Input_Text    input[id='addVLANIPTVSetupInputNumberPriority']    ${Priority}
+    #:FOR    ${i}    IN RANGE    6    #bug 6 can't click
+    : FOR    ${i}    IN RANGE    5
+    \    GUI_DIVCheckbox_Checked    div[id='modal-addVLANIPTVSetup'] > div > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12.ng-group-block > div:nth-child(3) > div.col-lg-6.col-md-6.col-sm-6.ng-wired-ports-box > div:nth-child(${i+2}) > div    Off    False
+    #6 not clickable so max of LANPortRangeR should be 5
+    : FOR    ${i}    IN RANGE    ${LANPortRangeL}    ${LANPortRangeR}+1
+    \    GUI_DIVCheckbox_Checked    div[id='modal-addVLANIPTVSetup'] > div > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12.ng-group-block > div:nth-child(3) > div.col-lg-6.col-md-6.col-sm-6.ng-wired-ports-box > div:nth-child(${i+1}) > div    On    False
+    : FOR    ${j}    IN RANGE    3
+    \    GUI_DIVCheckbox_Checked    div[id='modal-addVLANIPTVSetup'] > div > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12.ng-group-block > div:nth-child(3) > div.col-lg-6.col-md-6.col-sm-6.ng-wireless-box > div:nth-child(${j+2}) > div    Off    False
+    : FOR    ${j}    IN RANGE    ${WirelessRangeL}    ${WirelessRangeR}+1
+    \    GUI_DIVCheckbox_Checked    div[id='modal-addVLANIPTVSetup'] > div > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12.ng-group-block > div:nth-child(3) > div.col-lg-6.col-md-6.col-sm-6.ng-wireless-box > div:nth-child(${j+1}) > div    On    False
+    GUI_Click_Element_CSS    a[id='addVLANIPTVSetupAdd']
+    CHECK_Wait_Until_Element_Should    div[id='modal-addVLANIPTVSetup']    False    30
+
+Edit_VLAN_Rule
+    [Arguments]    ${SName}    ${VLANid}    ${Priority}    ${LANPortRangeL}    ${LANPortRangeR}    ${WirelessRangeL}
+    ...    ${WirelessRangeR}
+    GUI_Click_Element_CSS    div[id='table-AS-PanelVLANIPTVVLANTagGroup'] > table > tbody > tr:nth-child(3) > th:nth-child(6) > a
+    CHECK_Wait_Until_Element_Should    div[id='modal-editVLANIPTVSetup']    True    30
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-6.png
+    #CHECK_Textinput
+    COMMON_Input_Text    input[id='editVLANIPTVSetupTextName']    ${SName}
+    COMMON_Input_Text    input[id='editVLANIPTVSetupNumberVlanID']    ${VLANid}
+    COMMON_Input_Text    input[id='editVLANIPTVSetupNumbrtPriority']    ${Priority}
+    : FOR    ${i}    IN RANGE    6    #bug 6 can't click
+    \    GUI_DIVCheckbox_Checked    div[id='modal-editVLANIPTVSetup'] > div > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12.ng-group-block > div:nth-child(3) > div.col-lg-6.col-md-6.col-sm-6.ng-wired-ports-box > div:nth-child(${i+2}) > div    Off    False
+    #6 not clickable so max of LANPortRangeR should be 5
+    : FOR    ${i}    IN RANGE    ${LANPortRangeL}    ${LANPortRangeR}+1
+    \    GUI_DIVCheckbox_Checked    div[id='modal-editVLANIPTVSetup'] > div > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12.ng-group-block > div:nth-child(3) > div.col-lg-6.col-md-6.col-sm-6.ng-wired-ports-box > div:nth-child(${i+1}) > div    On    False
+    : FOR    ${j}    IN RANGE    3
+    \    GUI_DIVCheckbox_Checked    div[id='modal-editVLANIPTVSetup'] > div > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12.ng-group-block > div:nth-child(3) > div.col-lg-6.col-md-6.col-sm-6.ng-wireless-box > div:nth-child(${j+2}) > div    Off    False
+    : FOR    ${j}    IN RANGE    ${WirelessRangeL}    ${WirelessRangeR}+1
+    \    GUI_DIVCheckbox_Checked    div[id='modal-editVLANIPTVSetup'] > div > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12.ng-group-block > div:nth-child(3) > div.col-lg-6.col-md-6.col-sm-6.ng-wireless-box > div:nth-child(${j+1}) > div    On    False
+    GUI_Click_Element_CSS    a[id='editVLANIPTVSetupSave']
+    CHECK_Wait_Until_Element_Should    div[id='modal-editVLANIPTVSetup']    False    30
+
+Check_WPS_Setting_Page
+    FUNCTION_Goto_Advanced_AdvancedSettings_WPSSetting_Page
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1.png
+    GUI_DIVCheckbox_Checked    div[id='wpsEnableRouterPINTBOn2455']    On    True
+    CHECK_Elements_Should_Show    True    div[id='advASWPSSettings'] > div:nth-child(5) > div > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12.ng-group-block.ng-block-wrapper-top.input-sublock
+    GUI_DIVCheckbox_Checked    div[id='wpsAutoDisableRouterPINTBOn2455']    On    True
+    COMMON_Input_Text    input[id='wpsMaxPinFailTimeTBOn2455Input']    2
+    GUI_Click_Element_CSS    div[id='advASWPSSettings'] > div:nth-child(5) > div > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12.ng-group-block.ng-block-wrapper-top.input-sublock > div > div
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='wpsMaxPinFailTimeTBOn2455Input']    3    False
+    Should Be True    '${Result}'=='PASS'
+    COMMON_Input_Text    input[id='wpsMaxPinFailTimeTBOn2455Input']    11
+    GUI_Click_Element_CSS    div[id='advASWPSSettings'] > div:nth-child(5) > div > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12.ng-group-block.ng-block-wrapper-top.input-sublock > div > div
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='wpsMaxPinFailTimeTBOn2455Input']    10    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_DIVCheckbox_Checked    div[id='wpsEnableRouterPINTBOn2455']    Off    True
+    CHECK_Wait_Until_Element_Should    div[id='advASWPSSettings'] > div:nth-child(5) > div > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12.ng-group-block.ng-block-wrapper-top.input-sublock    False    30
+    #
+    GUI_DIVCheckbox_Foreach    True    div[id='wps24GHz5GHz15GHz2KeepExistingWireless']
+    #
+    FUNCTION_Switch_Smart_Connect    On
+    FUNCTION_Goto_Advanced_AdvancedSettings_WPSSetting_Page
+    ${TextOn}    COMMON_Get_Element_Text    label[id='wps24GHz5GHz15GHz2KeepExistingWirelessLabel']    True
+    FUNCTION_Switch_Smart_Connect    Off
+    FUNCTION_Goto_Advanced_AdvancedSettings_WPSSetting_Page
+    ${TextOff}    COMMON_Get_Element_Text    label[id='wps24GHz5GHz15GHz2KeepExistingWirelessLabel']    True
+
+Check_UPnP_Page
+    FUNCTION_Goto_Advanced_AdvancedSettings_UPnP_Page
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1.png
+    CHECK_Elements_Should_Show    False    div[id='advASUPnP'] > div:nth-child(1)    div[id='advASUPnP'] > div:nth-child(2)
+    GUI_DIVCheckbox_Foreach    True    div[id='advASUPnP'] > div:nth-child(1) > div > div:nth-child(2) > div
+    COMMON_Input_Text    input[id='UPnP_advertisment_period']    0
+    GUI_Click_Element_CSS    div[id='advASUPnP']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='UPnP_advertisment_period']    1    False
+    Should Be True    '${Result}'=='PASS'
+    COMMON_Input_Text    input[id='UPnP_advertisment_period']    1441
+    GUI_Click_Element_CSS    div[id='advASUPnP']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='UPnP_advertisment_period']    1440    False
+    Should Be True    '${Result}'=='PASS'
+    COMMON_Input_Text    input[id='UPnP_advertisment_TTL']    0
+    GUI_Click_Element_CSS    div[id='advASUPnP']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='UPnP_advertisment_TTL']    1    False
+    Should Be True    '${Result}'=='PASS'
+    COMMON_Input_Text    input[id='UPnP_advertisment_TTL']    256
+    GUI_Click_Element_CSS    div[id='advASUPnP']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='UPnP_advertisment_TTL']    255    False
+    Should Be True    '${Result}'=='PASS'
+
+Check_Local_Managerment_Setting
+    FUNCTION_Goto_Advanced_AdvancedSettings_RemoteManagement_Page
+    GUI_DIVCheckbox_Foreach    True    div[id='forceToUseHTTPSEnable']
+    COMMON_Input_Text    input[id='passwordProtectionLocalIdleTimeoutValue']    65536
+    GUI_Click_Element_CSS    div[id='advASWebServiceManagement']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='passwordProtectionLocalIdleTimeoutValue']    65535    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_DIVCheckbox_Foreach    True    div[id='advASWebServiceManagement'] > div > div:nth-child(1) > div:nth-child(5) > div
+    COMMON_Input_Text    span[id='passwordProtectionLocalTokenTimeout'] > input[type="number"]    65536
+    GUI_Click_Element_CSS    div[id='advASWebServiceManagement']
+    ${Result}    CHECK_Element_Should_Have_Text    span[id='passwordProtectionLocalTokenTimeout'] > input[type="number"]    65535    False
+    Should Be True    '${Result}'=='PASS'
+    #Check_Divs_TypeIs_CheckBox    div[id='advASWebServiceManagement'] > div > div:nth-child(1) > div:nth-child(7) > div
+    COMMON_Input_Text    span[id='passwordProtectionLocalFailedAttempts'] > input[type="number"]    2
+    GUI_Click_Element_CSS    div[id='advASWebServiceManagement']
+    ${Result}    CHECK_Element_Should_Have_Text    span[id='passwordProtectionLocalFailedAttempts'] > input[type="number"]    3    False
+    Should Be True    '${Result}'=='PASS'
+    COMMON_Input_Text    span[id='passwordProtectionLocalFailedAttempts'] > input[type="number"]    65
+    GUI_Click_Element_CSS    div[id='advASWebServiceManagement']
+    ${Result}    CHECK_Element_Should_Have_Text    span[id='passwordProtectionLocalFailedAttempts'] > input[type="number"]    64    False
+    Should Be True    '${Result}'=='PASS'
+    COMMON_Input_Text    input[id='passwordProtectionLocalFailedLockTimeValue']    0
+    GUI_Click_Element_CSS    div[id='advASWebServiceManagement']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='passwordProtectionLocalFailedLockTimeValue']    1    False
+    Should Be True    '${Result}'=='PASS'
+    COMMON_Input_Text    input[id='passwordProtectionLocalFailedLockTimeValue']    65536
+    GUI_Click_Element_CSS    div[id='advASWebServiceManagement']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='passwordProtectionLocalFailedLockTimeValue']    65535    False
+    Should Be True    '${Result}'=='PASS'
+
+Check_Remote_Managerment_Setting
+    FUNCTION_Goto_Advanced_AdvancedSettings_RemoteManagement_Page
+    GUI_DIVCheckbox_Foreach    True    div[id='advASWebServiceManagement'] > div > div:nth-child(2) > div:nth-child(2) > div
+    GUI_DIVCheckbox_Checked    div[id='advASWebServiceManagement'] > div > div:nth-child(2) > div:nth-child(2) > div    Off    True
+    ${Result}    ${Attribute}    Run Keyword And Ignore Error    COMMON_Get_Element_Attribute    disabled    input[id='remotePortInput']
+    Should_Be_True    '${Attribute}'=='true'
+    ${Result}    ${Attribute}    Run Keyword And Ignore Error    COMMON_Get_Element_Attribute    disabled    input[id='passwordProtectionRemoteIdleTimeoutValue']
+    Should_Be_True    '${Attribute}'=='true'
+    ${Result}    ${Attribute}    Run Keyword And Ignore Error    COMMON_Get_Element_Attribute    disabled    button[id='WSMRemoteAccess']
+    Should_Be_True    '${Attribute}'=='true'
+    GUI_DIVCheckbox_Checked    div[id='advASWebServiceManagement'] > div > div:nth-child(2) > div:nth-child(2) > div    On    True
+    ${Result}    ${Attribute}    Run Keyword And Ignore Error    COMMON_Get_Element_Attribute    disabled    input[id='remotePortInput']
+    Should_Be_True    '${Attribute}'=='None'
+    ${Result}    ${Attribute}    Run Keyword And Ignore Error    COMMON_Get_Element_Attribute    disabled    input[id='passwordProtectionRemoteIdleTimeoutValue']
+    Should_Be_True    '${Attribute}'=='None'
+    ${Result}    ${Attribute}    Run Keyword And Ignore Error    COMMON_Get_Element_Attribute    disabled    button[id='WSMRemoteAccess']
+    Should_Be_True    '${Attribute}'=='None'
+    ${RMAddress}    COMMON_Get_Element_Text    div[id='passwordProtectionRemoteAddress']    True
+    FUNCTION_Goto_Advanced_RouterStatus_Page
+    ${WANPortIP}    COMMON_Get_Element_Text    div[id='advRouterStatusInternetIP']    True
+    FUNCTION_Goto_Advanced_AdvancedSettings_RemoteManagement_Page
+    ${Attribute}    COMMON_Get_Element_Attribute    value    input[id='remotePortInput']
+    Should_Be_True    '${RMAddress}'=='https://${WANPortIP}:${Attribute}'
+
+Check_Add_Static_Route_Rule
+    FUNCTION_Goto_Advanced_AdvancedSettings_StaticRouters_Page
+    GUI_Click_Element_CSS    button[id='advASStaticRoutesAddRoute']
+    CHECK_Wait_Until_Element_Should    div[id='modal-addASStaticRoute']    True    30
+    ${I_Name}    Set Variable    a
+    ${I_Active}    Set Variable    On
+    ${I_DestinationIP}    Set Variable    192.168.1.88
+    ${I_DestinationIPMask}    Set Variable    255.255.255.255
+    ${I_GatewayIP}    Set Variable    192.168.1.1
+    #
+    GUI_Click_Element_CSS    a[id='addASStaticRouteAdd']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    Route Name cannot be blank.Invalid destination IP Address. Try again.Invalid subnet mask. Try again.Invalid gateway IP address. Try again    60
+    COMMON_Input_Text    input[id='addASStaticRouteTextName']    a
+    GUI_Click_Element_CSS    a[id='addASStaticRouteAdd']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    Invalid destination IP Address. Try again.Invalid subnet mask. Try again.Invalid gateway IP address. Try again
+    #
+    GUI_DIVCheckbox_Foreach    True    div[id='addASStaticRouteActive']
+    GUI_DIVCheckbox_Checked    div[id='addASStaticRouteActive']    ${I_Active}    True
+    GUI_DIVCheckbox_Foreach    True    div[id='addASStaticRoutePrivate']
+    GUI_DIVCheckbox_Checked    div[id='addASStaticRoutePrivate']    ${I_Active}    True
+    #
+    COMMON_Input_Text    input[id='addASStaticRouteDIP']    ${I_DestinationIP}
+    GUI_Click_Element_CSS    a[id='addASStaticRouteAdd']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    Invalid subnet mask. Try again.Invalid gateway IP address. Try again
+    #
+    COMMON_Input_Text    input[id='addASStaticRouteTextSubmask']    ${I_DestinationIPMask}
+    GUI_Click_Element_CSS    a[id='addASStaticRouteAdd']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    Invalid gateway IP address. Try again
+    #
+    COMMON_Input_Text    input[id='addASStaticRouteTextGIP']    ${I_GatewayIP}
+    COMMON_Input_Text    input[id='addASStaticRouteNumberMetric']    1
+    GUI_Click_Element_CSS    div[id='modal-addASStaticRoute']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    You cannot enter a number lower than 2
+    COMMON_Input_Text    input[id='addASStaticRouteNumberMetric']    16
+    GUI_Click_Element_CSS    div[id='modal-addASStaticRoute']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    You cannot enter a number higher than 15
+    COMMON_Input_Text    input[id='addASStaticRouteNumberMetric']    2
+    GUI_Click_Element_CSS    a[id='addASStaticRouteAdd']
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    FUNCTION_Goto_Advanced_AdvancedSettings_StaticRouters_Page
+    CHECK_Elements_Should_Show    False    div[id='table-AS-static-routes'] > table > tbody > tr:nth-child(2)
+    ##
+    GUI_Click_Element_CSS    button[id='advASStaticRoutesAddRoute']
+    CHECK_Wait_Until_Element_Should    div[id='modal-addASStaticRoute']    True    30
+    GUI_Click_Element_CSS    a[id='addASStaticRouteCancel']
+    CHECK_Wait_Until_Element_Should    div[id='modal-addASStaticRoute']    False    30
+    CHECK_Wait_Page_Not_Contain    div[id='table-AS-static-routes'] > table > tbody > tr:nth-child(3)    30
+    ##
+    ${Activelabel}    COMMON_Get_Element_Text    div[id='table-AS-static-routes'] > table > tbody > tr:nth-child(2) > td.nolabel-active    True
+    ${Name}    COMMON_Get_Element_Text    div[id='table-AS-static-routes'] > table > tbody > tr:nth-child(2) > td.nolabel-name    True
+    ${DestinationIP}    COMMON_Get_Element_Text    div[id='table-AS-static-routes'] > table > tbody > tr:nth-child(2) > td.nolabel-destination    True
+    ${GatewayIP}    COMMON_Get_Element_Text    div[id='table-AS-static-routes'] > table > tbody > tr:nth-child(2) > td.nolabel-gateway    True
+    Run Keyword If    '${I_Active}'=='On'    Should_Be_True    '${Activelabel}'=='Yes'
+    ...    ELSE IF    '${I_Active}'=='Off'    Should_Be_True    '${Activelabel}'=='No'
+    Should_Be_True    '${I_Name}'=='${Name}'
+    Should_Be_True    '${I_DestinationIP}'=='${DestinationIP}'
+    Should_Be_True    '${I_GatewayIP}'=='${GatewayIP}'
+
+Check_Edit_Static_Route_Rule
+    FUNCTION_Goto_Advanced_AdvancedSettings_StaticRouters_Page
+    GUI_Click_Element_CSS    div[id='table-AS-static-routes'] > table > tbody > tr:nth-child(2) > th:nth-child(5) > a
+    Wait_Until_Element_Is_Visible    modal-editASStaticRoute    timeout=30s
+    ${I_Name}    Set Variable    a
+    ${I_Active}    Set Variable    On
+    ${I_DestinationIP}    Set Variable    192.168.1.88
+    ${I_DestinationIPMask}    Set Variable    255.255.255.255
+    ${I_GatewayIP}    Set Variable    192.168.1.1
+    ${R_Name}    COMMON_Get_Element_Attribute    value    input[id='editASStaticRouteTextName']
+    ${R_Active}    COMMON_Get_Element_Attribute    class    div[id='editASStaticRouteActive']
+    ${R_DestinationIP}    COMMON_Get_Element_Attribute    value    input[id='editASStaticRouteDIP']
+    ${R_DestinationIPMask}    COMMON_Get_Element_Attribute    value    input[id='editASStaticRouteTextSubmask']
+    ${R_GatewayIP}    COMMON_Get_Element_Attribute    value    input[id='editASStaticRouteTextGIP']
+    Should_Be_True    '${R_Name}'=='${I_Name}'
+    Run Keyword If    '${I_Active}'=='On'    Should_Not_Contain    ${R_Active}    off
+    ...    ELSE IF    '${I_Active}'=='Off'    Should_Contain    ${R_Active}    off
+    Should_Be_True    '${R_DestinationIP}'=='${I_DestinationIP}'
+    Should_Be_True    '${R_DestinationIPMask}'=='${I_DestinationIPMask}'
+    Should_Be_True    '${R_GatewayIP}'=='${I_GatewayIP}'
+    GUI_Click_Element_CSS    a[id='editASStaticRouteCancel']
+    Wait_UntiL_Element_Is_Not_Visible    modal-editASStaticRoute    timeout=30s
+    CHECK_Elements_Should_Show    True    div[id='table-AS-static-routes'] > table > tbody > tr:nth-child(2)
+    GUI_Click_Element_CSS    div[id='table-AS-static-routes'] > table > tbody > tr:nth-child(2) > th:nth-child(5) > a
+    Wait_Until_Element_Is_Visible    modal-editASStaticRoute    timeout=30s
+    ${I_Name}    Set Variable    b
+    ${I_Active}    Set Variable    Off
+    ${I_DestinationIP}    Set Variable    192.168.1.3
+    ${I_DestinationIPMask}    Set Variable    255.255.255.255
+    ${I_GatewayIP}    Set Variable    192.168.1.2
+    COMMON_Input_Text    input[id='editASStaticRouteTextName']    ${I_Name}
+    GUI_DIVCheckbox_Checked    div[id='editASStaticRouteActive']    ${I_Active}    True
+    COMMON_Input_Text    input[id='editASStaticRouteDIP']    ${I_DestinationIP}
+    COMMON_Input_Text    input[id='editASStaticRouteTextSubmask']    ${I_DestinationIPMask}
+    COMMON_Input_Text    input[id='editASStaticRouteTextGIP']    ${I_GatewayIP}
+    GUI_Click_Element_CSS    a[id='editASStaticRouteSave']
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    FUNCTION_Goto_Advanced_AdvancedSettings_StaticRouters_Page
+    CHECK_Elements_Should_Show    False    div[id='table-AS-static-routes'] > table > tbody > tr:nth-child(2)
+    ${Activelabel}    COMMON_Get_Element_Text    div[id='table-AS-static-routes'] > table > tbody > tr:nth-child(2) > td.nolabel-active    True
+    ${Name}    COMMON_Get_Element_Text    div[id='table-AS-static-routes'] > table > tbody > tr:nth-child(2) > td.nolabel-name    True
+    ${DestinationIP}    COMMON_Get_Element_Text    div[id='table-AS-static-routes'] > table > tbody > tr:nth-child(2) > td.nolabel-destination    True
+    ${GatewayIP}    COMMON_Get_Element_Text    div[id='table-AS-static-routes'] > table > tbody > tr:nth-child(2) > td.nolabel-gateway    True
+    Run Keyword If    '${I_Active}'=='On'    Should_Be_True    '${Activelabel}'=='Yes'
+    ...    ELSE IF    '${I_Active}'=='Off'    Should_Be_True    '${Activelabel}'=='No'
+    Should_Be_True    '${I_Name}'=='${Name}'
+    Should_Be_True    '${I_DestinationIP}'=='${DestinationIP}'
+    Should_Be_True    '${I_GatewayIP}'=='${GatewayIP}'
+    GUI_Click_Element_CSS    div[id='table-AS-static-routes'] > table > tbody > tr:nth-child(2) > th:nth-child(6) > a
+    Wait_Until_Page_Does_Not_Contain_Element    div[id='table-AS-static-routes'] > table > tbody > tr:nth-child(2)    timeout=30s
+
+Check_VPN_Service_Page
+    FUNCTION_Goto_Advanced_AdvancedSettings_VPNService_Page
+    GUI_DIVCheckbox_Checked    div[id='VPNSET'] > div:nth-child(1) > div:nth-child(4) > div    Off    False
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    Sleep    20
+    GUI_Click_Element_CSS    button[id='windows']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    You must select the Enable VPN Service check box and click the "Apply" button first    60
+    GUI_Click_Element_CSS    button[id='nonwindows']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    You must select the Enable VPN Service check box and click the "Apply" button first    60
+    GUI_Click_Element_CSS    button[id='smartphone']
+    CHECK_Alert_Should_Show    div[id='popAlertInfo']    You must select the Enable VPN Service check box and click the "Apply" button first    60
+    #
+    GUI_DIVCheckbox_Checked    div[id='VPNSET'] > div:nth-child(1) > div:nth-child(4) > div    On    False
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    Sleep    5
+    GUI_Click_Element_CSS    button[id='windows']
+    GUI_Click_Element_CSS    button[id='nonwindows']
+    GUI_Click_Element_CSS    button[id='smartphone']
+    Run Keyword And Ignore Error    CHECK_Alert_Should_Show    div[id='popAlertInfo']    The IP address    60
+    GUI_DIVCheckbox_Checked    div[id='VPNSET'] > div:nth-child(1) > div:nth-child(4) > div    Off    False
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    #
+    GUI_Click_Element_CSS    div[id='openVPNClientSetup'] > div.vpnLinkWrapper.col-lg-4.col-md-4.col-sm-4 > a
+    CHECK_Elements_Should_Show    False    div[id='openVPN-Windows']
+    GUI_Click_Element_CSS    div[id='openVPNClientSetup'] > div:nth-child(3) > a
+    CHECK_Elements_Should_Show    False    div[id='openVPN-MAC']
+    GUI_Click_Element_CSS    div[id='openVPNClientSetup'] > div:nth-child(4) > a
+    CHECK_Elements_Should_Show    False    div[id='openVPN-iPhone']
+    GUI_Click_Element_CSS    div[id='openVPNClientSetup'] > div:nth-child(5) > a
+    CHECK_Elements_Should_Show    False    div[id='openVPN-Android']
+    GUI_Radiobutton_Foreach    div[id='intVPNCVPNTSTTUN']    True
+    GUI_Radiobutton_Foreach    div[id='intVPNCVPNTSTTAP']    True
+    GUI_Radiobutton_Foreach    div[id='intVPNClientsWillUseThisVPNAC']    True
+    Sleep    5
+
+Check_PortTriggering_Page_When_Input_Error
+    FUNCTION_Goto_Advanced_AdvancedSettings_PortTriggering_Page
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1.png
+    ${ErrorPort}    Set Variable    65535
+    ${IP}    Set Variable    192.168.1.88
+    ${ErrorIP}    Set Variable    192.168.1.256
+    GUI_DIVCheckbox_Foreach    False    div[id='advASPortTriggering'] > div:nth-child(1) > div.ng-wrapper.col-lg-12.col-md-12.col-sm-12.ng-group-block > div > div.checkbox-wrapper
+    COMMON_Input_Text    input[id='advancedSettings_portTriggeringTimeout']    10000
+    GUI_Click_Element_CSS    div[id='advASPortTriggering']
+    ${Result}    CHECK_Element_Should_Have_Text    input[id='advancedSettings_portTriggeringTimeout']    9999    False
+    GUI_Click_Element_CSS    div[id='submitDiscardButton']
+    #
+    GUI_Click_Element_CSS    button#advASPortTriggeringAddButton
+    CHECK_Wait_Until_Element_Should    div[id='modal-addASPortTriggering']    True    30
+    #!    now the bug is this area can't be empty or the router is running in error
+    #GUI_Input_Text    input[id='addASPortTriggeringTextName']    ${EMPTY}
+    COMMON_Input_Text    input[id='addASPortTriggeringTextName']    a
+    #!
+    GUI_Dropdownlist_Foreach    button[id='addASPortTriggeringTrigProt']    False
+    #
+    COMMON_Input_Text    input[id='addASPortTriggeringTrigPort']    ${ErrorPort}
+    #
+    GUI_Dropdownlist_Foreach    button[id='addASPortTriggeringSIPType']    False
+    GUI_Dropdownlist_Choise_Text    button[id='addASPortTriggeringSIPType']    single IP address    False
+    GUI_Dropdownlist_Foreach    button[id='buttonTcpUdp']    False
+    #
+    COMMON_Input_Text    input[id='addASPortTriggeringStartPort']    ${ErrorPort}
+    COMMON_Input_Text    input[id='addASPortTriggeringEndPort']    ${ErrorPort}
+    GUI_Click_Element_CSS    a[id='addASPortTriggeringAdd']
+    #port error#
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    Invalid Port Number; Port Number should between 1~65534    60
+    ${ErrorPortC}    Evaluate    int(${ErrorPort})-1
+    COMMON_Input_Text    input[id='addASPortTriggeringTrigPort']    ${ErrorPortC}
+    GUI_Click_Element_CSS    a[id='addASPortTriggeringAdd']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    Invalid Port Number; Port Number should between 1~65534    60
+    COMMON_Input_Text    input[id='addASPortTriggeringStartPort']    ${ErrorPortC}
+    GUI_Click_Element_CSS    a[id='addASPortTriggeringAdd']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    Invalid Port Number; Port Number should between 1~65534    60
+    COMMON_Input_Text    input[id='addASPortTriggeringEndPort']    ${ErrorPortC}
+    GUI_Click_Element_CSS    a[id='addASPortTriggeringAdd']
+    ##Ip Error
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    You entered an invalid IP address    60
+    GUI_Dropdownlist_Choise_Text    button[id='addASPortTriggeringSIPType']    single IP address    False
+    COMMON_Input_Text    input[id='addASPortTriggeringTextUIP']    ${EMPTY}
+    GUI_Click_Element_CSS    a[id='addASPortTriggeringAdd']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    You entered an invalid IP address    60
+    COMMON_Input_Text    input[id='addASPortTriggeringTextUIP']    ${ErrorIP}
+    GUI_Click_Element_CSS    a[id='addASPortTriggeringAdd']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    You entered an invalid IP address    60
+    COMMON_Input_Text    input[id='addASPortTriggeringTextUIP']    ${IP}
+    COMMON_Input_Text    input[id='addASPortTriggeringTextName']    1111111111222222222233333333334
+    GUI_Click_Element_CSS    a[id='addASPortTriggeringAdd']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    The service name length is invalid    60
+    GUI_Click_Element_CSS    a[id='addASPortTriggeringCancel']
+    CHECK_Wait_Until_Element_Should    div[id='modal-addASPortTriggering']    False    30
+    GUI_Click_Element_CSS    button[id='intAlertInfoButton']
+    Sleep    5
+
+Check_Page_When_Add_3_PortTriggering_Rule
+    FUNCTION_Goto_Advanced_AdvancedSettings_PortTriggering_Page
+    ${SName1}    Set Variable    TCP65534
+    ${TPort1}    Set Variable    65534
+    ${TMode1}    Set Variable    TCP
+    ${SPort1}    Set Variable    65534
+    ${EPort1}    Set Variable    65534
+    ${IMode1}    Set Variable    TCP/UDP
+    ${IP1}    Set Variable    192.168.1.88
+    Add_Porttrigging_Rule    ${SName1}    ${TPort1}    ${TMode1}    ${SPort1}    ${EPort1}    ${IMode1}
+    ...    ${IP1}
+    ${SName2}    Set Variable    111111111122222222223333333333
+    ${TPort2}    Set Variable    1
+    ${TMode2}    Set Variable    UDP
+    ${SPort2}    Set Variable    1
+    ${EPort2}    Set Variable    1
+    ${IMode2}    Set Variable    TCP
+    ${IP2}    Set Variable    192.168.1.85
+    Add_Porttrigging_Rule    ${SName2}    ${TPort2}    ${TMode2}    ${SPort2}    ${EPort2}    ${IMode2}
+    ...    ${IP2}
+    ${SName3}    Set Variable    $#&*^*()_+{}|\
+    ${TPort3}    Set Variable    5000
+    ${TMode3}    Set Variable    UDP
+    ${SPort3}    Set Variable    2
+    ${EPort3}    Set Variable    65533
+    ${IMode3}    Set Variable    UDP
+    ${IP3}    Set Variable    Any
+    Add_Porttrigging_Rule    ${SName3}    ${TPort3}    ${TMode3}    ${SPort3}    ${EPort3}    ${IMode3}
+    ...    ${IP3}
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    30
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    30
+    FUNCTION_Goto_Advanced_AdvancedSettings_PortTriggering_Page
+    ##
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(2) > td.nolabel-serviceName    ${SName1}    False
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(3) > td.nolabel-serviceName    ${SName2}    False
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(4) > td.nolabel-serviceName    ${SName3}    False
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(2) > td.nolabel-serviceType    ${TMode1}:${TPort1}    False
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(3) > td.nolabel-serviceType    ${TMode2}:${TPort2}    False
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(4) > td.nolabel-serviceType    ${TMode3}:${TPort3}    False
+    ${Result}    Run Keyword If    '${SPort1}'=='${EPort1}'    CHECK_Element_Should_Have_Text    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(2) > td.nolabel-inboundConnection    ${IMode1}:${SPort1}    False
+    ${Result}    Run Keyword If    '${SPort1}'<>'${EPort1}'    CHECK_Element_Should_Have_Text    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(2) > td.nolabel-inboundConnection    ${IMode1}:${SPort1}..${EPort1}    False
+    ${Result}    Run Keyword If    '${SPort2}'=='${EPort2}'    CHECK_Element_Should_Have_Text    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(3) > td.nolabel-inboundConnection    ${IMode2}:${SPort2}    False
+    ${Result}    Run Keyword If    '${SPort2}'<>'${EPort2}'    CHECK_Element_Should_Have_Text    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(3) > td.nolabel-inboundConnection    ${IMode2}:${SPort2}..${EPort2}    False
+    ${Result}    Run Keyword If    '${SPort3}'=='${EPort3}'    CHECK_Element_Should_Have_Text    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(4) > td.nolabel-inboundConnection    ${IMode3}:${SPort3}    False
+    ${Result}    Run Keyword If    '${SPort3}'<>'${EPort3}'    CHECK_Element_Should_Have_Text    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(4) > td.nolabel-inboundConnection    ${IMode3}:${SPort3}..${EPort3}    False
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(2) > td.nolabel-serviceUser    ${IP1}    False
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(3) > td.nolabel-serviceUser    ${IP2}    False
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(4) > td.nolabel-serviceUser    ${IP3}    False
+    ##
+    ${SName}    Set Variable    TCP65534
+    ${SNameC}    Set Variable    TCP65533
+    ${TPort}    Set Variable    65534
+    ${TPortC}    Set Variable    65533
+    ${SPort}    Set Variable    65534
+    ${SPortC}    Set Variable    1
+    ${EPort}    Set Variable    65534
+    ${EPortC}    Set Variable    65533
+    ${IP}    Set Variable    192.168.1.88
+    GUI_Click_Element_CSS    button#advASPortTriggeringAddButton
+    CHECK_Wait_Until_Element_Should    div[id='modal-addASPortTriggering']    True    30
+    Sleep    5
+    COMMON_Input_Text    input[id='addASPortTriggeringTextName']    ${SName}
+    GUI_Click_Element_CSS    a[id='addASPortTriggeringAdd']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    The input data was duplicated. You must change the service name    60
+    COMMON_Input_Text    input[id='addASPortTriggeringTextName']    ${SNameC}
+    GUI_Dropdownlist_Choise_Text    button[id='addASPortTriggeringTrigProt']    TCP    False
+    COMMON_Input_Text    input[id='addASPortTriggeringTrigPort']    ${TPort}
+    GUI_Click_Element_CSS    a[id='addASPortTriggeringAdd']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    You must enter the starting and ending port numbers    60
+    GUI_Dropdownlist_Choise_Text    button[id='addASPortTriggeringSIPType']    single IP address    False
+    COMMON_Input_Text    input[id='addASPortTriggeringTextUIP']    ${IP}
+    GUI_Dropdownlist_Choise_Text    button[id='buttonTcpUdp']    TCP/UDP    False
+    COMMON_Input_Text    input[id='addASPortTriggeringStartPort']    ${SPort}
+    COMMON_Input_Text    input[id='addASPortTriggeringEndPort']    ${EPort}
+    ##below should be correct but DUT made it,so this should be a bug    ====================    ##below should be correct but DUT made it,so this should be a bug
+    #GUI_Click_Element_CSS    a[id='addASPortTriggeringAdd']
+    #CHECK_Alert_Should_Show    div[id='popAlertInfo']    Input incorrect    60
+    #COMMON_Input_Text    input[id='addASPortTriggeringTrigPort']    ${TPortC}
+    #COMMON_Input_Text    input[id='addASPortTriggeringStartPort']    ${SPortC}
+    #COMMON_Input_Text    input[id='addASPortTriggeringEndPort']    ${EPortC}
+    ##up should be correct but DUT made it,so this should be a bug    ====================    ##up should be correct but DUT made it,so this should be a bug
+    GUI_Click_Element_CSS    a[id='addASPortTriggeringCancel']
+    CHECK_Wait_Until_Element_Should    div[id='modal-addASPortTriggering']    False    30
+    Sleep    5
+    ##
+    GUI_Click_Element_CSS    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(4) > th:nth-child(7) > a
+    CHECK_Wait_Page_Not_Contain    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(4)    30
+    GUI_Click_Element_CSS    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(3) > th:nth-child(7) > a
+    CHECK_Wait_Page_Not_Contain    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(3)    30
+    GUI_Click_Element_CSS    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(2) > th:nth-child(7) > a
+    CHECK_Wait_Page_Not_Contain    div[id='table-AS-portmap'] > table > tbody > tr:nth-child(2)    30
+
+Check_Page_When_Error_Input_PortForwarding_Rules
+    FUNCTION_Goto_Advanced_AdvancedSettings_PortForwarding_Page
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1.png
+    ${SName}    Set Variable    1111111111222222222233333333334
+    ${EPort}    Set Variable    65535
+    ${Iport}    Set Variable    65535
+    ${IP}    Set Variable    192.168.1.89
+    ${ErrorIP}    Set Variable    192.168.1.256
+    #
+    GUI_Click_Element_CSS    button#advASPortForwardingAddButton
+    CHECK_Wait_Until_Element_Should    div[id='modal-addASPortForwarding']    True    30
+    #add-on check
+    GUI_Dropdownlist_Choise_Text    button[id='addASPortForwardingButton']    User Defined    False
+    COMMON_Input_Text    input[id='addASPortForwardingServicName']    ${SName}
+    GUI_Click_Element_CSS    a[id='addASPortForwardingAdd']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    Invalid port number.0The port number must be a number between 1 and 65534
+    GUI_Dropdownlist_Foreach    button[id='addASPortForwardingServicProtocol']    False
+    GUI_ScrollDIV_To_DIVElement    modal-addASPortForwarding    addASPortForwardingServiceExtPortRange
+    GUI_Click_Element_CSS    input[id='addASPortForwardingServiceExtPortRange']
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-3.png
+    Sleep    5
+    COMMON_Input_Text    input[id='addASPortForwardingServiceExtPortRange']    ${EPort}
+    GUI_Click_Element_CSS    a[id='addASPortForwardingAdd']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    The service name length is invalid
+    ${SName_CorrectResult}    Set Variable    111111111122222222223333333333
+    GUI_ScrollDIV_To_DIVElement    modal-addASPortForwarding    addASPortForwardingServiceExtPortRange
+    COMMON_Input_Text    input[id='addASPortForwardingServicName']    ${SName_CorrectResult}
+    GUI_ScrollDIV_To_DIVElement    modal-addASPortForwarding    advancedSettingsAddPFUseSamePortForInternal
+    GUI_DIVCheckbox_Checked    div[id='advancedSettingsAddPFUseSamePortForInternal']    Off    False
+    GUI_ScrollDIV_To_DIVElement    modal-addASPortForwarding    addASPortForwardingTextIntIP
+    COMMON_Input_Text    input[id='addASPortForwardingTextIntIP']    ${ErrorIP}
+    GUI_Click_Element_CSS    a[id='addASPortForwardingAdd']
+    CHECK_Alert_Should_Show    div[id='popAlertWarning']    You entered an invalid IP address
+    GUI_Click_Element_CSS    a[id='addASPortForwardingCancel']
+    CHECK_Wait_Until_Element_Should    div[id='modal-addASPortForwarding']    False    30
+
+Check_Add_PortForwarding_Rule_And_The_Result
+    FUNCTION_Goto_Advanced_AdvancedSettings_PortForwarding_Page
+    ${SName}    Set Variable    1111111111222222222233333333334
+    ${EPort}    Set Variable    65535
+    ${Iport}    Set Variable    65535
+    ${IP}    Set Variable    192.168.1.89
+    ${ErrorIP}    Set Variable    192.168.1.256
+    ##Input right and get the result test    user defined    65535    65535    192.168.1.88
+    GUI_Click_Element_CSS    button#advASPortForwardingAddButton
+    CHECK_Wait_Until_Element_Should    div[id='modal-addASPortForwarding']    True    30
+    GUI_Dropdownlist_Choise_Text    button[id='addASPortForwardingButton']    User Defined    False
+    #length is 30 but no popup of warning    #input string's length is 31
+    ${SName_CorrectResult}    Set Variable    111111111122222222223333333333
+    COMMON_Input_Text    input[id='addASPortForwardingServicName']    ${SName_CorrectResult}
+    GUI_Dropdownlist_Choise_Text    button[id='addASPortForwardingServicProtocol']    TCP    False
+    COMMON_Input_Text    input[id='addASPortForwardingServiceExtPortRange']    ${EPort}
+    GUI_Click_Element_CSS    div[id='advancedSettingsAddPFUseSamePortForInternal']>label
+    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='advancedSettingsAddPFUseSamePortForInternal']
+    ${Result}    ${message}    Run Keyword And Ignore Error    Should Contain    ${Attribute}    off
+    Run Keyword If    '${Result}'=='PASS'    GUI_Click_Element_CSS    div[id='advancedSettingsAddPFUseSamePortForInternal']>label
+    GUI_ScrollDIV_To_DIVElement    modal-addASPortForwarding    addASPortForwardingTextIntIP
+    COMMON_Input_Text    input[id='addASPortForwardingTextIntIP']    ${IP}
+    GUI_Click_Element_CSS    a[id='addASPortForwardingAdd']
+    CHECK_Wait_Until_Element_Should    div[id='modal-addASPortForwarding']    False    60
+    CHECK_Wait_Until_Element_Should    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2)    True    30
+    ${EPort_CorrectResult}    Set Variable    65534
+    ${IPort_CorrectResult}    Set Variable    65534
+    ${SName_CorrectResult}    Set Variable    111111111122222222223333333333
+    ${IP_CorrectResult}    Set Variable    192.168.1.89
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2) > td.nolabel-devName-ServiceName    ${SName_CorrectResult}    False
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2) > td.nolabel-devName-ExternalStartPort    ${EPort_CorrectResult}    False
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2) > td.nolabel-devName-InternalStartPorts    ${IPort_CorrectResult}    False
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2) > td.nolabel-devName-InternalIP    ${IP_CorrectResult}    False
+
+Check_Edit_PortForwarding_Rule_And_The_Result
+    ${ErrorIP}    Set Variable    192.168.1.256
+    #click edit button to edit the services
+    GUI_Click_Element_CSS    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2) > th:nth-child(5) > a
+    CHECK_Wait_Until_Element_Should    div[id='modal-editASPortForwarding']    True    30
+    ${SName}    Set Variable    kidd
+    ${EPort}    Set Variable    5000
+    ${Iport}    Set Variable    5000
+    ${IP}    Set Variable    192.168.1.88
+    COMMON_Input_Text    input[id='modaleditASPortForwardingServiceName']    ${SName}
+    COMMON_Input_Text    input[id='editASPortForwardingServiceExtPortRange']    ${EPort}
+    COMMON_Input_Text    input[id='editASPortForwardingServiceIntIPaddr']    ${IP}
+    GUI_Click_Element_CSS    a[id='editASPortForwardingServiceApplyAlink']
+    CHECK_Wait_Until_Element_Should    div[id='modal-editASPortForwarding']    False    30
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2) > td.nolabel-devName-ServiceName    ${SName}    False
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2) > td.nolabel-devName-ExternalStartPort    ${EPort}    False
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2) > td.nolabel-devName-InternalStartPorts    ${Iport}    False
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2) > td.nolabel-devName-InternalIP    ${IP}    False
+    #click trush button to delete the services
+    GUI_Click_Element_CSS    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2) > th:nth-child(6) > a
+    CHECK_Wait_Page_Not_Contain    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2)    60
+    Sleep    5
+    ##Input right and get the result test    FTP    65535    65535    192.168.1.88
+    GUI_Click_Element_CSS    button#advASPortForwardingAddButton
+    CHECK_Wait_Until_Element_Should    div[id='modal-addASPortForwarding']    True    30
+    GUI_Dropdownlist_Choise_Text    button[id='addASPortForwardingButton']    FTP    False
+    GUI_ScrollDIV_To_DIVElement    modal-addASPortForwarding    addASPortForwardingTextIntIP
+    COMMON_Input_Text    input[id='addASPortForwardingTextIntIP']    ${IP}
+    GUI_Click_Element_CSS    a[id='addASPortForwardingAdd']
+    CHECK_Wait_Until_Element_Should    div[id='modal-addASPortForwarding']    False    60
+    CHECK_Wait_Until_Element_Should    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2)    True    30
+    ${EPort_CorrectResult}    Set Variable    20-21
+    ${IPort_CorrectResult}    Set Variable    20-21
+    ${SName_CorrectResult}    Set Variable    FTP
+    ${IP_CorrectResult}    Set Variable    192.168.1.88
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2) > td.nolabel-devName-ServiceName    ${SName_CorrectResult}    False
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2) > td.nolabel-devName-ExternalStartPort    ${EPort_CorrectResult}    False
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2) > td.nolabel-devName-InternalStartPorts    ${IPort_CorrectResult}    False
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2) > td.nolabel-devName-InternalIP    ${IP_CorrectResult}    False
+    GUI_Click_Element_CSS    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2) > th:nth-child(6) > a
+    CHECK_Wait_Page_Not_Contain    div[id='table-port-forwarding'] > table > tbody > tr:nth-child(2)    60

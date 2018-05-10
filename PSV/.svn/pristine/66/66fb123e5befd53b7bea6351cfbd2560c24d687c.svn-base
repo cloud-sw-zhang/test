@@ -1,0 +1,25 @@
+    Set Environment Variable    U_WEB_HTTP_TITLE    Netgear Router R8500
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    Firefox
+    Set Environment Variable    G_PROD_IP_ADDR    https://192.168.1.1/
+    #Step 1:Log in
+    GUI_Login    admin    password
+    #Step 2:Check dashboard Element
+    Dashboard_Check
+    #Step 3:Check WAN connection (Link up)
+    GUI_Element_Should_Exists    img[src='images/topology/noFailoverConnected.svg']
+    #Step 4:Check WAN connection (Link down)
+    WAN_Connection_Link_Down
+    GUI_Element_Should_Exists    img[src='images/topology/noFailoverNoInternet.svg']
+    Set_WAN_Mode_DHCP
+    GUI_Element_Should_Exists    img[src='images/topology/noFailoverConnected.svg']
+    #Step 5:Check Router information and Check For Upgrage
+    Router_Information_Check
+    Upgrade_Check
+    #Step 6:Check Smart Connect
+    Smart_Connect_Check
+    #Step 7:Check Access Control
+    Access_Control_Check
+    #Step 8:Check Parent Control
+    Parent_Control_Check
+    #Step 9:Check Dynamic Qos
+    Dynamic_Qos_Check

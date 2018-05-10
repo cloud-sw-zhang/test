@@ -1,0 +1,196 @@
+*** Settings ***
+Resource          ../../ProjectResource_Envirement.txt
+
+*** Test Cases ***
+1.2.5.1 Menus & Others Test
+    Test1.2.5.1_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.2.5.1_Step1 Log In
+    Test1.2.5.1_Step2 Change Language and Watch the difference of GUI
+    #Test1.2.5.1_Step3 Change Led Setting and Watch the difference of GUI    #now bug if reboot dashboard will no init
+    #Test1.2.5.1_Step4 Reboot DUT And Log In and Watch the step is correct    #now bug if reboot dashboard will no init
+    #Test1.2.5.1_Step5 Log Out Then Log In and Watch the step is correct    #now bug if reboot dashboard will no init
+    Test1.2.5.1_Step6 Check All Help File Page
+
+*** Keywords ***
+Test1.2.5.1_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.2.5.1_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.2.5.1_Step2 Change Language and Watch the difference of GUI
+    GUI_Click_Element_CSS    li[id='dropDownLi']>a>span>i
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1.png
+    GUI_Click_Element_CSS    li[id='dropDownLi']>a>span>i
+    Change_Language    简体中文    CANCEL
+    Sleep    10
+    ${Result}    CHECK_Element_Should_Have_Text    a[id='routerInfoCollapsedAlink'] > span.int_routerInformation    Router Information    True
+    Should Be True    '${Result}'=='PASS'
+    Change_Language    简体中文    APPLY
+    Sleep    10
+    ${Result}    CHECK_Element_Should_Have_Text    a[id='routerInfoCollapsedAlink'] > span.int_routerInformation    路由器信息    True
+    Should Be True    '${Result}'=='PASS'
+    Change_Language    English    APPLY
+    Sleep    10
+    ${Result}    CHECK_Element_Should_Have_Text    a[id='routerInfoCollapsedAlink'] > span.int_routerInformation    Router Information    True
+    Should Be True    '${Result}'=='PASS'
+    Sleep    2
+
+Test1.2.5.1_Step3 Change Led Setting and Watch the difference of GUI
+    Change_LED_Setting    PON    CANCEL
+    Change_LED_Setting    PON    APPLY
+    Check_LED_Setting    PON
+    Change_LED_Setting    OFF    APPLY
+    Check_LED_Setting    OFF
+    Change_LED_Setting    ON    APPLY
+    Check_LED_Setting    ON
+
+Test1.2.5.1_Step4 Reboot DUT And Log In and Watch the step is correct
+    Check_Reboot    CANCEL
+    Check_Reboot    APPLY
+
+Test1.2.5.1_Step5 Log Out Then Log In and Watch the step is correct
+    Check_Log_Out    CANCEL
+    Check_Log_Out    APPLY
+
+Test1.2.5.1_Step6 Check All Help File Page
+    Check_Help_File
+
+Check_Help_File
+    #click to show help file menu
+    GUI_Click_Element    a[id='menuInformation']
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-7.png
+    #check help file of "device"
+    GUI_Click_Element    span[id='infoContainerMonitoringDevicesAlink']
+    #return to menu
+    GUI_Click_Element    div[id='helpInfoContainerReturnToAllTopics']
+    #check help file of "setup"
+    GUI_Click_Element    span[class='hs-head-title int_setup']
+    #check help file of "setup" sub page
+    ${Result}    CHECK_Elements_Should_Exists    span[id='infoContainerSetupInternetAlink']    span[id='infoContainerSetupSetupWizardAlink']    span[id='infoContainerSetupLanSetupAlink']    span[id='infoContainerSetupWirelessAlink']    span[id='infoContainerSetupGuestNetworkAlink']
+    ...    span[id='infoContainerSetupDynamicQosAlink']    span[id='infoContainerSetupRouterModeAlink']    span[id='infoContainerSetupWpsWizardAlink']
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element    span[class='hs-head-title int_setup']
+    #check help file of "monitoring"
+    GUI_Click_Element    span[class='hs-head-title int_monitoring']
+    #check help file of "monitoring" sub page
+    ${Result}    CHECK_Elements_Should_Exists    span[id='infoContainerMonitoringDataUsageAlink']    span[id='infoContainerMonitoringLogsAlink']
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element    span[class='hs-head-title int_monitoring']
+    #check help file of "contentFiltering"
+    GUI_Click_Element    span[class='hs-head-title int_contentFiltering']
+    #check help file of "contentFiltering" sub page
+    ${Result}    CHECK_Elements_Should_Exists    span[id='infoContainerContentFilteringAccessControlAlink']    span[id='infoContainerContentFilteringBlockSitesAlink']    span[id='infoContainerContentFilteringBlockServicesAlink']    span[id='infoContainerContentFilteringScheduleAlink']    span[id='infoContainerContentFilteringEmailAlink']
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element    span[class='hs-head-title int_contentFiltering']
+    #check help file of "administration"
+    GUI_Click_Element    span[class='hs-head-title int_administration']
+    #check help file of "administration" sub page
+    ${Result}    CHECK_Elements_Should_Exists    span[id='infoContainerAdministrationPasswordAlink']    span[id='infoContainerAdministrationFWUpdateAlink']    span[id='infoContainerAdministrationBackupSettingsAlink']    span[id='infoContainerAdministrationFactoryResetAlink']
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element    span[class='hs-head-title int_administration']
+    #check help file of "usb"
+    GUI_Click_Element    span[class='hs-head-title int_usb']
+    #check help file of "usb" sub page
+    ${Result}    CHECK_Elements_Should_Exists    span[id='infoContainerUSBMediaServerAlink']    span[id='infoContainerUSBReadyCloudAlink']    span[id='infoContainerUSBReadyShareStorageAlink']    span[id='infoContainerUSBReadySharePrinterAlink']
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element    span[class='hs-head-title int_usb']
+    #check help file of "advancedSettings"
+    GUI_Click_Element    span[class='hs-head-title int_advancedSettings']
+    #check help file of "advancedSettings" sub page
+    ${Result}    CHECK_Elements_Should_Exists    span[id='infoContainerAdvancedSettingsWirelessAlink']    span[id='infoContainerAdvancedSettingsPortForwardingAlink']    span[id='infoContainerAdvancedSettingsPortTriggeringAlink']    span[id='infoContainerAdvancedSettingsDynamicDNSAlink']    span[id='infoContainerAdvancedSettingsVPNServiceAlink']
+    ...    span[id='infoContainerAdvancedSettingsStaticRoutesAlink']    span[id='infoContainerAdvancedSettingsWebServiceManagementAlink']    span[id='infoContainerAdvancedSettingsUpnpAlink']    span[id='infoContainerAdvancedSettingsIPv6Alink']    span[id='infoContainerAdvancedSettingsWPSSettingsAlink']    span[id='infoContainerAdvancedSettingsIPTVVLANSetupAlink']
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element    span[class='hs-head-title int_advancedSettings']
+    #check online document web site
+    GUI_Click_Element    span[class='shHelpSupportLink']
+    GUI_Click_Element_CSS    span[class='int_NHS006']
+    COMMON_Select_Window    NEW
+    Close Window
+    COMMON_Select_Window    MAIN
+    GUI_Click_Element_CSS    span[class='int_NHS007']
+    #Wait For Active Window    www.netgear.com    60
+    COMMON_Select_Window    NEW
+    Close Window
+    COMMON_Select_Window    MAIN
+    GUI_Click_Element_CSS    a[href='OpenSourceLicense.htm']>span>span
+    COMMON_Select_Window    NEW
+    Close Window
+    COMMON_Select_Window    MAIN
+
+Check_Log_Out
+    [Arguments]    ${Confirm}
+    GUI_Click_Element_CSS    li[id='dropDownLi']>a>span>i
+    GUI_Click_Element_CSS    a[id='menuSettingsWrapperLogoutAlink']
+    ${Result}    CHECK_Elements_Should_Show    False    div[class='modal-header int_logoutDesc']
+    Should Be True    '${Result}'=='PASS'
+    Run Keyword IF    '${Confirm}' =='CANCEL'    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-6.png
+    Run Keyword IF    '${Confirm}' =='CANCEL'    GUI_Click_Element_CSS    a[id='intCancel']
+    Run Keyword IF    '${Confirm}' =='APPLY'    GUI_Click_Element_CSS    a[id='intLogout']
+    Sleep    5
+    Run Keyword If    '${Confirm}' =='APPLY'    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+    Sleep    15
+
+Check_Reboot
+    [Arguments]    ${Confirm}
+    GUI_Click_Element_CSS    li[id='dropDownLi']>a>span>i
+    GUI_Click_Element_CSS    a[id='menuSettingsWrapperReootRouterAlink']
+    CHECK_Elements_Should_Show    False    span[class='int_rebootRouterDesc']
+    Run Keyword IF    '${Confirm}' =='CANCEL'    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-4.png
+    Run Keyword If    '${Confirm}'=='CANCEL'    GUI_Click_Element_CSS    a[id='intCancelAlink4']
+    ...    ELSE IF    '${Confirm}' =='APPLY'    GUI_Click_Element_CSS    a[id='intApplyAlink4']
+    Sleep    5
+    ${Result}    Run Keyword If    '${Confirm}' =='APPLY'    CHECK_Element_Should_Have_Text    div[id='modal-rebootingRouter'] > div.modal-header > h4    REBOOTING    False
+    Run Keyword If    '${Confirm}' =='APPLY'    Should Be True    '${Result}'=='PASS'
+    Run Keyword IF    '${Confirm}' =='APPLY'    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-5.png
+    Run Keyword If    '${Confirm}' =='APPLY'    Close Browser
+    Run Keyword If    '${Confirm}' =='APPLY'    Sleep    180
+    Run Keyword If    '${Confirm}' =='APPLY'    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+    Sleep    10
+
+Check_LED_Setting
+    [Arguments]    ${LED}
+    GUI_Click_Element_CSS    li[id='dropDownLi']>a>span>i
+    GUI_Click_Element_CSS    a[id='menuSettingsWrapperLEDAlink']
+    ${Result}    CHECK_Wait_Until_Element_Should    div[id='modal-ledSettings']    True    30
+    Should Be True    '${Result}'=='PASS'
+    ${result}    Run Keyword If    '${LED}' =='ON'    COMMON_Get_Element_Attribute    checked    input[id='q128']
+    ...    ELSE IF    '${LED}' =='OFF'    COMMON_Get_Element_Attribute    checked    input[id='q129']
+    ...    ELSE IF    '${LED}' =='PON'    COMMON_Get_Element_Attribute    checked    input[id='q130']
+    Should Be True    '${result}'=='true'
+    GUI_Click_Element_CSS    a[id='intCancelAlink3']
+    ${Result}    CHECK_Wait_Until_Element_Should    div[id='modal-ledSettings']    False    30
+    Should Be True    '${Result}'=='PASS'
+
+Change_Language
+    [Arguments]    ${Language}    ${Confirm}
+    #Click The Menu
+    GUI_Click_Element_CSS    li[id='dropDownLi']>a>span>i
+    GUI_Click_Element_CSS    a[id='menuSettingsWrapperLanguageAlink']
+    CHECK_Elements_Should_Show    False    button[id='ddLanguage']
+    Run Keyword IF    '${Confirm}' =='CANCEL'    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-2.png
+    GUI_Dropdownlist_Choise_Text    button[id='ddLanguage']    ${Language}    False
+    Run Keyword IF    '${Confirm}' =='CANCEL'    GUI_Click_Element_CSS    a[id='langcancel']
+    Run Keyword IF    '${Confirm}' =='APPLY'    GUI_Click_Element_CSS    a[id='langapply']
+    Sleep    15
+
+Change_LED_Setting
+    [Arguments]    ${LED}    ${Confirm}
+    #Click The Menu
+    GUI_Click_Element_CSS    li[id='dropDownLi']>a>span>i
+    GUI_Click_Element_CSS    a[id='menuSettingsWrapperLEDAlink']
+    CHECK_Elements_Should_Show    False    span[class='int_enableLED']
+    Run Keyword IF    '${Confirm}' =='CANCEL'    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-3.png
+    Run Keyword IF    '${Confirm}' =='CANCEL'    GUI_Click_Element_CSS    a[id='intCancelAlink3']
+    ...    ELSE IF    '${LED}' =='ON'    GUI_Click_Element_CSS    label[id='q128Label']
+    ...    ELSE IF    '${LED}' =='OFF'    GUI_Click_Element_CSS    label[id='q129Label']
+    ...    ELSE IF    '${LED}' =='PON'    GUI_Click_Element_CSS    label[id='q130Label']
+    Run Keyword IF    '${Confirm}' =='APPLY'    GUI_Click_Element_CSS    a[id='intApplyAlink3']
+    Run Keyword IF    '${Confirm}' =='APPLY'    Run Keyword And Ignore Error    Wait_Until_Element_Is_Visible    css=div[id='modal-actionUpdate'] > div.modal-content > div.modal-body > div > span.spinner-wrapper > span    timeout=30s
+    Run Keyword IF    '${Confirm}' =='APPLY'    Run Keyword And Ignore Error    Wait_Until_Element_Is_Not_Visible    css=div[id='modal-actionUpdate'] > div.modal-content > div.modal-body > div > span.spinner-wrapper > span    timeout=30s
+    ${res}    ${message}    Run Keyword And Ignore Error    COMMON_Get_Element_Attribute    class    div[id='modal-actionUpdate']

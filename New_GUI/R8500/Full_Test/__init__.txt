@@ -1,0 +1,2 @@
+*** Settings ***
+Resource          ../ProjectResource_Envirement.txt

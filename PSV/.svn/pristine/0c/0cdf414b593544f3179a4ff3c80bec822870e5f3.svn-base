@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Test Report</title>
+    <link href="assets/style.css" rel="stylesheet" type="text/css"/></head>
+  <body onLoad="init()">
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function find_all(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sort_column(elem) {
+    toggle_sort_states(elem);
+    var colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    var key;
+    if (elem.classList.contains('numeric')) {
+        key = key_num;
+    } else if (elem.classList.contains('result')) {
+        key = key_result;
+    } else {
+        key = key_alpha;
+    }
+    sort_table(elem, key(colIndex));
+}
+
+function show_all_extras() {
+    find_all('.col-result').forEach(show_extras);
+}
+
+function hide_all_extras() {
+    find_all('.col-result').forEach(hide_extras);
+}
+
+function show_extras(colresult_elem) {
+    var extras = colresult_elem.parentNode.nextElementSibling;
+    var expandcollapse = colresult_elem.firstElementChild;
+    extras.classList.remove("collapsed");
+    expandcollapse.classList.remove("expander");
+    expandcollapse.classList.add("collapser");
+}
+
+function hide_extras(colresult_elem) {
+    var extras = colresult_elem.parentNode.nextElementSibling;
+    var expandcollapse = colresult_elem.firstElementChild;
+    extras.classList.add("collapsed");
+    expandcollapse.classList.remove("collapser");
+    expandcollapse.classList.add("expander");
+}
+
+function show_filters() {
+    var filter_items = document.getElementsByClassName('filter');
+    for (var i = 0; i < filter_items.length; i++)
+        filter_items[i].hidden = false;
+}
+
+function add_collapse() {
+    // Add links for show/hide all
+    var resulttable = find('table#results-table');
+    var showhideall = document.createElement("p");
+    showhideall.innerHTML = '<a href="javascript:show_all_extras()">Show all details</a> / ' +
+                            '<a href="javascript:hide_all_extras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    find_all('.col-result').forEach(function(elem) {
+        var extras = elem.parentNode.nextElementSibling;
+        var expandcollapse = document.createElement("span");
+        if (elem.innerHTML === 'Passed') {
+            extras.classList.add("collapsed");
+            expandcollapse.classList.add("expander");
+        } else {
+            expandcollapse.classList.add("collapser");
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener("click", function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains("collapsed")) {
+                show_extras(event.currentTarget);
+            } else {
+                hide_extras(event.currentTarget);
+            }
+        });
+    })
+}
+
+function init () {
+    reset_sort_headers();
+
+    add_collapse();
+
+    show_filters();
+
+    toggle_sort_states(find('.initial-sort'));
+
+    find_all('.sortable').forEach(function(elem) {
+        elem.addEventListener("click",
+                              function(event) {
+                                  sort_column(elem);
+                              }, false)
+    });
+
+};
+
+function sort_table(clicked, key_func) {
+    var rows = find_all('.results-table-row');
+    var reversed = !clicked.classList.contains('asc');
+    var sorted_rows = sort(rows, key_func, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    var thead = document.getElementById("results-table-head");
+    document.getElementById('results-table').remove();
+    var parent = document.createElement("table");
+    parent.id = "results-table";
+    parent.appendChild(thead);
+    sorted_rows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName("BODY")[0].appendChild(parent);
+}
+
+function sort(items, key_func, reversed) {
+    var sort_array = items.map(function(item, i) {
+        return [key_func(item), i];
+    });
+    var multiplier = reversed ? -1 : 1;
+
+    sort_array.sort(function(a, b) {
+        var key_a = a[0];
+        var key_b = b[0];
+        return multiplier * (key_a >= key_b ? 1 : -1);
+    });
+
+    return sort_array.map(function(item) {
+        var index = item[1];
+        return items[index];
+    });
+}
+
+function key_alpha(col_index) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[col_index].firstChild.data.toLowerCase();
+    };
+}
+
+function key_num(col_index) {
+    return function(elem) {
+        return parseFloat(elem.childNodes[1].childNodes[col_index].firstChild.data);
+    };
+}
+
+function key_result(col_index) {
+    return function(elem) {
+        var strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+                       'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[col_index].firstChild.data);
+    };
+}
+
+function reset_sort_headers() {
+    find_all('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    find_all('.sortable').forEach(function(elem) {
+        var icon = document.createElement("div");
+        icon.className = "sort-icon";
+        icon.textContent = "vvv";
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove("desc", "active");
+        elem.classList.add("asc", "inactive");
+    });
+}
+
+function toggle_sort_states(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        reset_sort_headers();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function is_all_rows_hidden(value) {
+  return value.hidden == false;
+}
+
+function filter_table(elem) {
+    var outcome_att = "data-test-result";
+    var outcome = elem.getAttribute(outcome_att);
+    class_outcome = outcome + " results-table-row";
+    var outcome_rows = document.getElementsByClassName(class_outcome);
+
+    for(var i = 0; i < outcome_rows.length; i++){
+        outcome_rows[i].hidden = !elem.checked;
+    }
+
+    var rows = find_all('.results-table-row').filter(is_all_rows_hidden);
+    var all_rows_hidden = rows.length == 0 ? true : false;
+    var not_found_message = document.getElementById("not-found-message");
+    not_found_message.hidden = !all_rows_hidden;
+}
+</script>
+    <p>Report generated on 26-Apr-2018 at 15:41:03 by<a href="https://pypi.python.org/pypi/pytest-html"> pytest-html</a> v1.16.0</p>
+    <h2>Environment</h2>
+    <table id="environment">
+      <tr>
+        <td>BUILD_ID</td>
+        <td>156</td></tr>
+      <tr>
+        <td>BUILD_NUMBER</td>
+        <td>156</td></tr>
+      <tr>
+        <td>BUILD_TAG</td>
+        <td>jenkins-GenieAPP_test-Andriod_GenieAPP-Android_GuestAccess_2g-156</td></tr>
+      <tr>
+        <td>EXECUTOR_NUMBER</td>
+        <td>0</td></tr>
+      <tr>
+        <td>JAVA_HOME</td>
+        <td>C:\Program Files\Java\jre1.8.0_151</td></tr>
+      <tr>
+        <td>JOB_NAME</td>
+        <td>GenieAPP_test/Andriod_GenieAPP/Android_GuestAccess_2g</td></tr>
+      <tr>
+        <td>NODE_NAME</td>
+        <td>master</td></tr>
+      <tr>
+        <td>Packages</td>
+        <td>{&apos;py&apos;: &apos;1.5.2&apos;, &apos;pytest&apos;: &apos;3.3.0&apos;, &apos;pluggy&apos;: &apos;0.6.0&apos;}</td></tr>
+      <tr>
+        <td>Platform</td>
+        <td>Windows-7-6.1.7601-SP1</td></tr>
+      <tr>
+        <td>Plugins</td>
+        <td>{&apos;html&apos;: &apos;1.16.0&apos;, &apos;allure-adaptor&apos;: &apos;1.7.10&apos;, &apos;metadata&apos;: &apos;1.5.1&apos;}</td></tr>
+      <tr>
+        <td>Python</td>
+        <td>2.7.14</td></tr>
+      <tr>
+        <td>WORKSPACE</td>
+        <td>F:\ATE_script\GenieApp_test\Log</td></tr></table>
+    <h2>Summary</h2>
+    <p>14 tests ran in 1720.35 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="passed">12 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="failed">2 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable" col="name">Test</th>
+          <th class="sortable numeric" col="duration">Duration</th>
+          <th>Links</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="4">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">Test_Android_GuestAccess_2g.py::test_Step_7</td>
+          <td class="col-duration">61.54</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">def test_Step_7():<br/>        log.info('step-7 On this device, access www.routerlogin.com, verify it will be blocked, access www.netgear.com, verify it can visit successfully')<br/>        from appium import webdriver<br/>        desired_caps = {}<br/>        desired_caps['platformName'] = 'Android'<br/>        desired_caps['platformVersion'] = '4.4.2'<br/>        desired_caps['deviceName'] = '7e2b2d2'<br/>        desired_caps['appPackage'] = 'org.mozilla.firefox'<br/>        desired_caps['appActivity'] = '.App'<br/>        driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps)<br/>        time.sleep(5)<br/>        driver.find_element_by_id("org.mozilla.firefox:id/url_bar_title").click()<br/>        driver.find_element_by_id("org.mozilla.firefox:id/url_bar_translating_edge").send_keys('www.routerlogin.com')<br/>        driver.press_keycode(66)<br/>        time.sleep(5)<br/>        driver.get_screenshot_as_file('F:\\ATE_script\\GenieApp_test\\buffer\\routerlogin1.png')<br/>        time.sleep(2)<br/>        driver.quit()<br/>        time.sleep(2)<br/>        driver = webdriver.Remote('http://localhost:4723/wd/hub', desired_caps)<br/>        time.sleep(5)<br/>        driver.find_element_by_id("org.mozilla.firefox:id/url_bar_title").click()<br/>        driver.find_element_by_id("org.mozilla.firefox:id/url_bar_translating_edge").send_keys('www.netgear.com')<br/>        driver.press_keycode(66)<br/>        time.sleep(2)<br/>        driver.refresh<br/>        time.sleep(5)<br/>        driver.get_screenshot_as_file('F:\\ATE_script\\GenieApp_test\\buffer\\netgear1.png')<br/>        time.sleep(2)<br/>        driver.quit()<br/>        image1 = Image.open("F:\\ATE_script\\GenieApp_test\\buffer\\Routerlogin_SPEC.png")<br/>        image2 = Image.open("F:\\ATE_script\\GenieApp_test\\buffer\\routerlogin1.png")<br/>        h1 = image1.histogram()<br/>        h2 = image2.histogram()<br/>        result1 = math.sqrt(reduce(operator.add, list(map(lambda a,b:(a-b)**2,h1,h2))))<br/>        image3 = Image.open("F:\\ATE_script\\GenieApp_test\\buffer\\Routerlogin_SPEC.png")<br/>        image4 = Image.open("F:\\ATE_script\\GenieApp_test\\buffer\\netgear1.png")<br/>        h3 = image3.histogram()<br/>        h4 = image4.histogram()<br/>        result2 = math.sqrt(reduce(operator.add, list(map(lambda a,b:(a-b)**2,h3,h4))))<br/>        print result1,result2<br/>        if result1 &lt; 3000 and result2 &gt; 20000:<br/>            caseresult = 'pass'<br/>        else:<br/>            caseresult = 'fail'<br/>&gt;       assert caseresult == 'pass', "This case step pass"<br/><span class="error">E       AssertionError: This case step pass</span><br/><span class="error">E       assert 'fail' == 'pass'</span><br/><span class="error">E         - fail</span><br/><span class="error">E         + pass</span><br/><br/>..\Test_Android_GuestAccess_2g.py:425: AssertionError<br/>------------------------------ Captured log call -------------------------------<br/>Test_Android_GuestAccess_2g.py  381 INFO     step-7 On this device, access www.routerlogin.com, verify it will be blocked, access www.netgear.com, verify it can visit successfully
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session {"capabilities": {"alwaysMatch": {"platformName": "Android"}, "firstMatch": [{}]}, "desiredCapabilities": {"platformVersion": "4.4.2", "deviceName": "7e2b2d2", "platformName": "Android", "appActivity": ".App", "appPackage": "org.mozilla.firefox"}}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/caec222d-80cb-4527-a791-fd6fd617fce3/element {"using": "id", "sessionId": "caec222d-80cb-4527-a791-fd6fd617fce3", "value": "org.mozilla.firefox:id/url_bar_title"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/caec222d-80cb-4527-a791-fd6fd617fce3/element/1/click {"sessionId": "caec222d-80cb-4527-a791-fd6fd617fce3", "id": "1"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/caec222d-80cb-4527-a791-fd6fd617fce3/element {"using": "id", "sessionId": "caec222d-80cb-4527-a791-fd6fd617fce3", "value": "org.mozilla.firefox:id/url_bar_translating_edge"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/caec222d-80cb-4527-a791-fd6fd617fce3/element/2/value {"text": "www.routerlogin.com", "sessionId": "caec222d-80cb-4527-a791-fd6fd617fce3", "id": "2", "value": ["w", "w", "w", ".", "r", "o", "u", "t", "e", "r", "l", "o", "g", "i", "n", ".", "c", "o", "m"]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/caec222d-80cb-4527-a791-fd6fd617fce3/appium/device/press_keycode {"sessionId": "caec222d-80cb-4527-a791-fd6fd617fce3", "keycode": 66}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:4723/wd/hub/session/caec222d-80cb-4527-a791-fd6fd617fce3/screenshot {"sessionId": "caec222d-80cb-4527-a791-fd6fd617fce3"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    DELETE http://127.0.0.1:4723/wd/hub/session/caec222d-80cb-4527-a791-fd6fd617fce3 {"sessionId": "caec222d-80cb-4527-a791-fd6fd617fce3"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session {"capabilities": {"alwaysMatch": {"platformName": "Android"}, "firstMatch": [{}]}, "desiredCapabilities": {"platformVersion": "4.4.2", "deviceName": "7e2b2d2", "platformName": "Android", "appActivity": ".App", "appPackage": "org.mozilla.firefox"}}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/d01beaea-981c-4a0a-bd9b-65a60bef1246/element {"using": "id", "sessionId": "d01beaea-981c-4a0a-bd9b-65a60bef1246", "value": "org.mozilla.firefox:id/url_bar_title"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/d01beaea-981c-4a0a-bd9b-65a60bef1246/element/1/click {"sessionId": "d01beaea-981c-4a0a-bd9b-65a60bef1246", "id": "1"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/d01beaea-981c-4a0a-bd9b-65a60bef1246/element {"using": "id", "sessionId": "d01beaea-981c-4a0a-bd9b-65a60bef1246", "value": "org.mozilla.firefox:id/url_bar_translating_edge"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/d01beaea-981c-4a0a-bd9b-65a60bef1246/element/2/value {"text": "www.netgear.com", "sessionId": "d01beaea-981c-4a0a-bd9b-65a60bef1246", "id": "2", "value": ["w", "w", "w", ".", "n", "e", "t", "g", "e", "a", "r", ".", "c", "o", "m"]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/d01beaea-981c-4a0a-bd9b-65a60bef1246/appium/device/press_keycode {"sessionId": "d01beaea-981c-4a0a-bd9b-65a60bef1246", "keycode": 66}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:4723/wd/hub/session/d01beaea-981c-4a0a-bd9b-65a60bef1246/screenshot {"sessionId": "d01beaea-981c-4a0a-bd9b-65a60bef1246"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    DELETE http://127.0.0.1:4723/wd/hub/session/d01beaea-981c-4a0a-bd9b-65a60bef1246 {"sessionId": "d01beaea-981c-4a0a-bd9b-65a60bef1246"}
+remote_connection.py       567 DEBUG    Finished Request
+PngImagePlugin.py          137 DEBUG    STREAM 'IHDR' 16 13
+PngImagePlugin.py          137 DEBUG    STREAM 'sBIT' 41 4
+PngImagePlugin.py          564 DEBUG    'sBIT' 41 4 (unknown)
+PngImagePlugin.py          137 DEBUG    STREAM 'IDAT' 57 8192
+PngImagePlugin.py          137 DEBUG    STREAM 'IHDR' 16 13
+PngImagePlugin.py          137 DEBUG    STREAM 'sBIT' 41 4
+PngImagePlugin.py          564 DEBUG    'sBIT' 41 4 (unknown)
+PngImagePlugin.py          137 DEBUG    STREAM 'IDAT' 57 8192
+PngImagePlugin.py          137 DEBUG    STREAM 'IHDR' 16 13
+PngImagePlugin.py          137 DEBUG    STREAM 'sBIT' 41 4
+PngImagePlugin.py          564 DEBUG    'sBIT' 41 4 (unknown)
+PngImagePlugin.py          137 DEBUG    STREAM 'IDAT' 57 8192
+PngImagePlugin.py          137 DEBUG    STREAM 'IHDR' 16 13
+PngImagePlugin.py          137 DEBUG    STREAM 'sBIT' 41 4
+PngImagePlugin.py          564 DEBUG    'sBIT' 41 4 (unknown)
+PngImagePlugin.py          137 DEBUG    STREAM 'IDAT' 57 8192</div></td></tr></tbody>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">Test_Android_GuestAccess_2g.py::test_Step_11</td>
+          <td class="col-duration">31.77</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">def test_Step_11():<br/>        log.info('step-11 Check DUT Guest Access will be disabled')<br/>        from selenium import webdriver<br/>        url = "http://" + user + ':' + passwd + "@" + hostip + '/' + urlGuestNetwork2G<br/>        driver = webdriver.Firefox()<br/>&gt;       driver.get(url)<br/><br/>..\Test_Android_GuestAccess_2g.py:649: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/>C:\Python27\lib\site-packages\selenium\webdriver\remote\webdriver.py:324: in get<br/>    self.execute(Command.GET, {'url': url})<br/>C:\Python27\lib\site-packages\selenium\webdriver\remote\webdriver.py:312: in execute<br/>    self.error_handler.check_response(response)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/><br/>self = &lt;selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x02EC8C30&gt;<br/>response = {'status': 500, 'value': '{"value":{"error":"unknown error","message":"Reached error page: about:neterror?e=netTimeout...yState@chrome://marionette/content/listener.js:317:21\nhandleEvent@chrome://marionette/content/listener.js:285:9\n"}}'}<br/><br/>    def check_response(self, response):<br/>        """<br/>            Checks that a JSON response from the WebDriver does not have an error.<br/>    <br/>            :Args:<br/>             - response - The JSON response from the WebDriver server as a dictionary<br/>               object.<br/>    <br/>            :Raises: If the response contains an error message.<br/>            """<br/>        status = response.get('status', None)<br/>        if status is None or status == ErrorCode.SUCCESS:<br/>            return<br/>        value = None<br/>        message = response.get("message", "")<br/>        screen = response.get("screen", "")<br/>        stacktrace = None<br/>        if isinstance(status, int):<br/>            value_json = response.get('value', None)<br/>            if value_json and isinstance(value_json, basestring):<br/>                import json<br/>                try:<br/>                    value = json.loads(value_json)<br/>                    if len(value.keys()) == 1:<br/>                        value = value['value']<br/>                    status = value.get('error', None)<br/>                    if status is None:<br/>                        status = value["status"]<br/>                        message = value["value"]<br/>                        if not isinstance(message, basestring):<br/>                            value = message<br/>                            message = message.get('message')<br/>                    else:<br/>                        message = value.get('message', None)<br/>                except ValueError:<br/>                    pass<br/>    <br/>        exception_class = ErrorInResponseException<br/>        if status in ErrorCode.NO_SUCH_ELEMENT:<br/>            exception_class = NoSuchElementException<br/>        elif status in ErrorCode.NO_SUCH_FRAME:<br/>            exception_class = NoSuchFrameException<br/>        elif status in ErrorCode.NO_SUCH_WINDOW:<br/>            exception_class = NoSuchWindowException<br/>        elif status in ErrorCode.STALE_ELEMENT_REFERENCE:<br/>            exception_class = StaleElementReferenceException<br/>        elif status in ErrorCode.ELEMENT_NOT_VISIBLE:<br/>            exception_class = ElementNotVisibleException<br/>        elif status in ErrorCode.INVALID_ELEMENT_STATE:<br/>            exception_class = InvalidElementStateException<br/>        elif status in ErrorCode.INVALID_SELECTOR \<br/>                or status in ErrorCode.INVALID_XPATH_SELECTOR \<br/>                or status in ErrorCode.INVALID_XPATH_SELECTOR_RETURN_TYPER:<br/>            exception_class = InvalidSelectorException<br/>        elif status in ErrorCode.ELEMENT_IS_NOT_SELECTABLE:<br/>            exception_class = ElementNotSelectableException<br/>        elif status in ErrorCode.ELEMENT_NOT_INTERACTABLE:<br/>            exception_class = ElementNotInteractableException<br/>        elif status in ErrorCode.INVALID_COOKIE_DOMAIN:<br/>            exception_class = InvalidCookieDomainException<br/>        elif status in ErrorCode.UNABLE_TO_SET_COOKIE:<br/>            exception_class = UnableToSetCookieException<br/>        elif status in ErrorCode.TIMEOUT:<br/>            exception_class = TimeoutException<br/>        elif status in ErrorCode.SCRIPT_TIMEOUT:<br/>            exception_class = TimeoutException<br/>        elif status in ErrorCode.UNKNOWN_ERROR:<br/>            exception_class = WebDriverException<br/>        elif status in ErrorCode.UNEXPECTED_ALERT_OPEN:<br/>            exception_class = UnexpectedAlertPresentException<br/>        elif status in ErrorCode.NO_ALERT_OPEN:<br/>            exception_class = NoAlertPresentException<br/>        elif status in ErrorCode.IME_NOT_AVAILABLE:<br/>            exception_class = ImeNotAvailableException<br/>        elif status in ErrorCode.IME_ENGINE_ACTIVATION_FAILED:<br/>            exception_class = ImeActivationFailedException<br/>        elif status in ErrorCode.MOVE_TARGET_OUT_OF_BOUNDS:<br/>            exception_class = MoveTargetOutOfBoundsException<br/>        elif status in ErrorCode.JAVASCRIPT_ERROR:<br/>            exception_class = JavascriptException<br/>        elif status in ErrorCode.SESSION_NOT_CREATED:<br/>            exception_class = SessionNotCreatedException<br/>        elif status in ErrorCode.INVALID_ARGUMENT:<br/>            exception_class = InvalidArgumentException<br/>        elif status in ErrorCode.NO_SUCH_COOKIE:<br/>            exception_class = NoSuchCookieException<br/>        elif status in ErrorCode.UNABLE_TO_CAPTURE_SCREEN:<br/>            exception_class = ScreenshotException<br/>        elif status in ErrorCode.ELEMENT_CLICK_INTERCEPTED:<br/>            exception_class = ElementClickInterceptedException<br/>        elif status in ErrorCode.INSECURE_CERTIFICATE:<br/>            exception_class = InsecureCertificateException<br/>        elif status in ErrorCode.INVALID_COORDINATES:<br/>            exception_class = InvalidCoordinatesException<br/>        elif status in ErrorCode.INVALID_SESSION_ID:<br/>            exception_class = InvalidSessionIdException<br/>        elif status in ErrorCode.UNKNOWN_METHOD:<br/>            exception_class = UnknownMethodException<br/>        else:<br/>            exception_class = WebDriverException<br/>        if value == '' or value is None:<br/>            value = response['value']<br/>        if isinstance(value, basestring):<br/>            if exception_class == ErrorInResponseException:<br/>                raise exception_class(response, value)<br/>            raise exception_class(value)<br/>        if message == "" and 'message' in value:<br/>            message = value['message']<br/>    <br/>        screen = None<br/>        if 'screen' in value:<br/>            screen = value['screen']<br/>    <br/>        stacktrace = None<br/>        if 'stackTrace' in value and value['stackTrace']:<br/>            stacktrace = []<br/>            try:<br/>                for frame in value['stackTrace']:<br/>                    line = self._value_or_default(frame, 'lineNumber', '')<br/>                    file = self._value_or_default(frame, 'fileName', '&lt;anonymous&gt;')<br/>                    if line:<br/>                        file = "%s:%s" % (file, line)<br/>                    meth = self._value_or_default(frame, 'methodName', '&lt;anonymous&gt;')<br/>                    if 'className' in frame:<br/>                        meth = "%s.%s" % (frame['className'], meth)<br/>                    msg = "    at %s (%s)"<br/>                    msg = msg % (meth, file)<br/>                    stacktrace.append(msg)<br/>            except TypeError:<br/>                pass<br/>        if exception_class == ErrorInResponseException:<br/>            raise exception_class(response, message)<br/>        elif exception_class == UnexpectedAlertPresentException:<br/>            alert_text = None<br/>            if 'data' in value:<br/>                alert_text = value['data'].get('text')<br/>            elif 'alert' in value:<br/>                alert_text = value['alert'].get('text')<br/>            raise exception_class(message, screen, stacktrace, alert_text)<br/>&gt;       raise exception_class(message, screen, stacktrace)<br/><span class="error">E       WebDriverException: Message: Reached error page: about:neterror?e=netTimeout&amp;u=http%3A//admin%3APassword%21%40192.168.1.1/WLG_2g_wireless2_2.htm&amp;c=UTF-8&amp;f=regular&amp;d=192.168.1.1%20%E7%9A%84%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%93%8D%E5%BA%94%E6%97%B6%E9%97%B4%E8%BF%87%E9%95%BF%E3%80%82</span><br/><br/>C:\Python27\lib\site-packages\selenium\webdriver\remote\errorhandler.py:242: WebDriverException<br/>------------------------------ Captured log call -------------------------------<br/>Test_Android_GuestAccess_2g.py  645 INFO     step-11 Check DUT Guest Access will be disabled
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:58499/session {"capabilities": {"alwaysMatch": {"acceptInsecureCerts": true, "browserName": "firefox"}, "firstMatch": [{}]}, "desiredCapabilities": {"acceptInsecureCerts": true, "browserName": "firefox"}}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:58499/session/dcfd7257-af5b-4c17-94e3-1eaa37b36c0d/url {"url": "http://admin:Password!@192.168.1.1/WLG_2g_wireless2_2.htm"}
+remote_connection.py       567 DEBUG    Finished Request</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">Test_Android_GuestAccess_2g.py::test_Step_1</td>
+          <td class="col-duration">30.90</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">------------------------------ Captured log call -------------------------------<br/>Test_Android_GuestAccess_2g.py    7 INFO     step-1 Set DUT wireless ssid channel security
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56292/session {"capabilities": {"alwaysMatch": {"acceptInsecureCerts": true, "browserName": "firefox"}, "firstMatch": [{}]}, "desiredCapabilities": {"acceptInsecureCerts": true, "browserName": "firefox"}}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56292/session/923cf65c-1d81-46ea-936c-6c7ecc08d92b/url {"url": "http://admin:Password!@192.168.1.1/WLG_home.htm"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56292/session/923cf65c-1d81-46ea-936c-6c7ecc08d92b/element {"using": "css selector", "value": "[name=\"ssid\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56292/session/923cf65c-1d81-46ea-936c-6c7ecc08d92b/element/7faab731-bc54-4da5-a771-9ab671ed2a4d/clear {"id": "7faab731-bc54-4da5-a771-9ab671ed2a4d"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56292/session/923cf65c-1d81-46ea-936c-6c7ecc08d92b/element {"using": "css selector", "value": "[name=\"ssid\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56292/session/923cf65c-1d81-46ea-936c-6c7ecc08d92b/element/7faab731-bc54-4da5-a771-9ab671ed2a4d/value {"text": "GenieAPP_ATE_2G", "id": "7faab731-bc54-4da5-a771-9ab671ed2a4d", "value": ["G", "e", "n", "i", "e", "A", "P", "P", "_", "A", "T", "E", "_", "2", "G"]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56292/session/923cf65c-1d81-46ea-936c-6c7ecc08d92b/element {"using": "xpath", "value": "//tr[12]/td/input"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56292/session/923cf65c-1d81-46ea-936c-6c7ecc08d92b/element/f92b62dd-791b-4e1a-b622-fd255051a24e/click {"id": "f92b62dd-791b-4e1a-b622-fd255051a24e"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:56292/session/923cf65c-1d81-46ea-936c-6c7ecc08d92b/alert/text {}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56292/session/923cf65c-1d81-46ea-936c-6c7ecc08d92b/element {"using": "css selector", "value": "[name=\"passphrase\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56292/session/923cf65c-1d81-46ea-936c-6c7ecc08d92b/element/689ab407-be4e-475a-b73a-878781b08cb2/clear {"id": "689ab407-be4e-475a-b73a-878781b08cb2"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56292/session/923cf65c-1d81-46ea-936c-6c7ecc08d92b/element {"using": "css selector", "value": "[name=\"passphrase\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56292/session/923cf65c-1d81-46ea-936c-6c7ecc08d92b/element/689ab407-be4e-475a-b73a-878781b08cb2/value {"text": "88888888", "id": "689ab407-be4e-475a-b73a-878781b08cb2", "value": ["8", "8", "8", "8", "8", "8", "8", "8"]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56292/session/923cf65c-1d81-46ea-936c-6c7ecc08d92b/element {"using": "css selector", "value": "[name=\"Apply\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56292/session/923cf65c-1d81-46ea-936c-6c7ecc08d92b/element/b533cfaf-0a5a-434c-b1f2-994a96380e06/click {"id": "b533cfaf-0a5a-434c-b1f2-994a96380e06"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:56292/session/923cf65c-1d81-46ea-936c-6c7ecc08d92b/alert/text {}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56292/session/923cf65c-1d81-46ea-936c-6c7ecc08d92b/alert/accept {}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    DELETE http://127.0.0.1:56292/session/923cf65c-1d81-46ea-936c-6c7ecc08d92b {}
+remote_connection.py       567 DEBUG    Finished Request</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">Test_Android_GuestAccess_2g.py::test_Step_2_1</td>
+          <td class="col-duration">83.58</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">------------------------------ Captured log call -------------------------------<br/>Test_Android_GuestAccess_2g.py   48 INFO     step-2-1 disable wireless 5G enbale
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56431/session {"capabilities": {"alwaysMatch": {"acceptInsecureCerts": true, "browserName": "firefox"}, "firstMatch": [{}]}, "desiredCapabilities": {"acceptInsecureCerts": true, "browserName": "firefox"}}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56431/session/1dea4678-ba4e-43b8-940d-fd1bf1ba4e07/url {"url": "http://admin:Password!@192.168.1.1/WLG_adv_dual_band2.htm"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56431/session/1dea4678-ba4e-43b8-940d-fd1bf1ba4e07/element {"using": "css selector", "value": "[name=\"enable_ap\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:56431/session/1dea4678-ba4e-43b8-940d-fd1bf1ba4e07/element/2fb00f01-0dff-42c2-a53b-ac9a36a27913/selected {"id": "2fb00f01-0dff-42c2-a53b-ac9a36a27913"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56431/session/1dea4678-ba4e-43b8-940d-fd1bf1ba4e07/element {"using": "css selector", "value": "[name=\"enable_ap_an\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:56431/session/1dea4678-ba4e-43b8-940d-fd1bf1ba4e07/element/814e0b13-8932-4a7b-984e-5c649787fae1/selected {"id": "814e0b13-8932-4a7b-984e-5c649787fae1"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56431/session/1dea4678-ba4e-43b8-940d-fd1bf1ba4e07/element {"using": "css selector", "value": "[name=\"enable_ap_an\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56431/session/1dea4678-ba4e-43b8-940d-fd1bf1ba4e07/element/814e0b13-8932-4a7b-984e-5c649787fae1/click {"id": "814e0b13-8932-4a7b-984e-5c649787fae1"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56431/session/1dea4678-ba4e-43b8-940d-fd1bf1ba4e07/element {"using": "css selector", "value": "[name=\"Apply\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56431/session/1dea4678-ba4e-43b8-940d-fd1bf1ba4e07/element/e31524e6-b4c1-4e11-9eea-00735a1c77c6/click {"id": "e31524e6-b4c1-4e11-9eea-00735a1c77c6"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    DELETE http://127.0.0.1:56431/session/1dea4678-ba4e-43b8-940d-fd1bf1ba4e07 {}
+remote_connection.py       567 DEBUG    Finished Request</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">Test_Android_GuestAccess_2g.py::test_Step_2</td>
+          <td class="col-duration">37.51</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">------------------------------ Captured log call -------------------------------<br/>Test_Android_GuestAccess_2g.py   77 INFO     step-2 Android device 2G connect to DUT
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session {"capabilities": {"alwaysMatch": {"platformName": "Android"}, "firstMatch": [{}]}, "desiredCapabilities": {"platformVersion": "4.4.2", "deviceName": "7e2b2d2", "platformName": "Android", "appActivity": ".MiuiSettings", "appPackage": "com.android.settings"}}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/13a999cb-7e30-425a-b574-0e2bd6e8eff4/element {"using": "id", "sessionId": "13a999cb-7e30-425a-b574-0e2bd6e8eff4", "value": "miui:id/value_right"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:4723/wd/hub/session/13a999cb-7e30-425a-b574-0e2bd6e8eff4/element/1/attribute/text {"sessionId": "13a999cb-7e30-425a-b574-0e2bd6e8eff4", "name": "text", "id": "1"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    DELETE http://127.0.0.1:4723/wd/hub/session/13a999cb-7e30-425a-b574-0e2bd6e8eff4 {"sessionId": "13a999cb-7e30-425a-b574-0e2bd6e8eff4"}
+remote_connection.py       567 DEBUG    Finished Request</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">Test_Android_GuestAccess_2g.py::test_Step_3</td>
+          <td class="col-duration">135.07</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">------------------------------ Captured log call -------------------------------<br/>Test_Android_GuestAccess_2g.py  121 INFO     step-3 Enable Guest Access
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session {"capabilities": {"alwaysMatch": {"platformName": "Android"}, "firstMatch": [{}]}, "desiredCapabilities": {"platformVersion": "4.4.2", "deviceName": "7e2b2d2", "platformName": "Android", "appActivity": ".genie.main.ui.SplashActivity", "appPackage": "com.dragonflow"}}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/64d8181e-21cb-4370-9895-a52a0c1eea2f/element {"using": "name", "sessionId": "64d8181e-21cb-4370-9895-a52a0c1eea2f", "value": "\u8bbf\u5ba2 WiFi"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/64d8181e-21cb-4370-9895-a52a0c1eea2f/element/1/click {"sessionId": "64d8181e-21cb-4370-9895-a52a0c1eea2f", "id": "1"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/64d8181e-21cb-4370-9895-a52a0c1eea2f/element {"using": "id", "sessionId": "64d8181e-21cb-4370-9895-a52a0c1eea2f", "value": "com.dragonflow:id/local_but_loginclose"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/64d8181e-21cb-4370-9895-a52a0c1eea2f/element {"using": "id", "sessionId": "64d8181e-21cb-4370-9895-a52a0c1eea2f", "value": "com.dragonflow:id/local_access_login"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/64d8181e-21cb-4370-9895-a52a0c1eea2f/element {"using": "id", "sessionId": "64d8181e-21cb-4370-9895-a52a0c1eea2f", "value": "com.dragonflow:id/guestsetting_switch_enable"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:4723/wd/hub/session/64d8181e-21cb-4370-9895-a52a0c1eea2f/element/2/attribute/text {"sessionId": "64d8181e-21cb-4370-9895-a52a0c1eea2f", "name": "text", "id": "2"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/64d8181e-21cb-4370-9895-a52a0c1eea2f/element {"using": "id", "sessionId": "64d8181e-21cb-4370-9895-a52a0c1eea2f", "value": "com.dragonflow:id/guestsetting_switch_enable"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/64d8181e-21cb-4370-9895-a52a0c1eea2f/element/3/click {"sessionId": "64d8181e-21cb-4370-9895-a52a0c1eea2f", "id": "3"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/64d8181e-21cb-4370-9895-a52a0c1eea2f/element {"using": "id", "sessionId": "64d8181e-21cb-4370-9895-a52a0c1eea2f", "value": "com.dragonflow:id/common_toolbar_righttxt"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/64d8181e-21cb-4370-9895-a52a0c1eea2f/element/4/click {"sessionId": "64d8181e-21cb-4370-9895-a52a0c1eea2f", "id": "4"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/64d8181e-21cb-4370-9895-a52a0c1eea2f/element {"using": "id", "sessionId": "64d8181e-21cb-4370-9895-a52a0c1eea2f", "value": "com.dragonflow:id/common_msgdialog_button3"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:4723/wd/hub/session/64d8181e-21cb-4370-9895-a52a0c1eea2f/element/5/attribute/text {"sessionId": "64d8181e-21cb-4370-9895-a52a0c1eea2f", "name": "text", "id": "5"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/64d8181e-21cb-4370-9895-a52a0c1eea2f/element {"using": "id", "sessionId": "64d8181e-21cb-4370-9895-a52a0c1eea2f", "value": "com.dragonflow:id/common_msgdialog_button3"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/64d8181e-21cb-4370-9895-a52a0c1eea2f/element/6/click {"sessionId": "64d8181e-21cb-4370-9895-a52a0c1eea2f", "id": "6"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    DELETE http://127.0.0.1:4723/wd/hub/session/64d8181e-21cb-4370-9895-a52a0c1eea2f {"sessionId": "64d8181e-21cb-4370-9895-a52a0c1eea2f"}
+remote_connection.py       567 DEBUG    Finished Request</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">Test_Android_GuestAccess_2g.py::test_Step_4</td>
+          <td class="col-duration">183.73</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">------------------------------ Captured log call -------------------------------<br/>Test_Android_GuestAccess_2g.py  198 INFO     step-4 Change the Guest Access SSID/Time Period/Security Options and click Apply
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session {"capabilities": {"alwaysMatch": {"platformName": "Android"}, "firstMatch": [{}]}, "desiredCapabilities": {"platformVersion": "4.4.2", "deviceName": "7e2b2d2", "platformName": "Android", "appActivity": ".genie.main.ui.SplashActivity", "appPackage": "com.dragonflow"}}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element {"using": "name", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "value": "\u8bbf\u5ba2 WiFi"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element/1/click {"sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "id": "1"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element {"using": "name", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "value": "\u8bbf\u5ba2 WiFi"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element/2/click {"sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "id": "2"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element {"using": "id", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "value": "com.dragonflow:id/local_but_loginclose"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element {"using": "id", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "value": "com.dragonflow:id/local_access_login"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element {"using": "id", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "value": "com.dragonflow:id/guestsetting_switch_enable"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element/3/attribute/text {"sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "name": "text", "id": "3"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/ime/activate {"engine": "com.google.android.inputmethod.pinyin/.PinyinIME", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element {"using": "id", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "value": "com.dragonflow:id/guestsettings_txt_ssid"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element/4/clear {"sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "id": "4"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element {"using": "id", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "value": "com.dragonflow:id/guestsettings_txt_ssid"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element/5/value {"text": "GenieAPP_ATE_2G_Guest", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "id": "5", "value": ["G", "e", "n", "i", "e", "A", "P", "P", "_", "A", "T", "E", "_", "2", "G", "_", "G", "u", "e", "s", "t"]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/appium/device/hide_keyboard {"sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "strategy": "tapOutside"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element {"using": "id", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "value": "com.dragonflow:id/guest_security_value"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element/6/click {"sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "id": "6"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element {"using": "-android uiautomator", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "value": "new UiSelector().text(\"WPA2-PSK\")"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element/7/click {"sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "id": "7"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element {"using": "id", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "value": "com.dragonflow:id/guestsettings_txt_password"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element/8/clear {"sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "id": "8"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element {"using": "id", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "value": "com.dragonflow:id/guestsettings_txt_password"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element/9/value {"text": "00000000", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "id": "9", "value": ["0", "0", "0", "0", "0", "0", "0", "0"]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/appium/device/hide_keyboard {"sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "strategy": "tapOutside"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element {"using": "id", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "value": "com.dragonflow:id/guestsettings_txt_timeperiod"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element/10/click {"sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "id": "10"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element {"using": "name", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "value": "1 \u5c0f\u65f6"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element/11/click {"sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "id": "11"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element {"using": "id", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "value": "com.dragonflow:id/common_toolbar_righttxt"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element/12/click {"sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "id": "12"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element {"using": "id", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "value": "com.dragonflow:id/common_msgdialog_button3"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element/13/attribute/text {"sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "name": "text", "id": "13"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element {"using": "id", "sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "value": "com.dragonflow:id/common_msgdialog_button3"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4/element/14/click {"sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4", "id": "14"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    DELETE http://127.0.0.1:4723/wd/hub/session/486ed4ee-21bb-4b90-b021-e48c3506eff4 {"sessionId": "486ed4ee-21bb-4b90-b021-e48c3506eff4"}
+remote_connection.py       567 DEBUG    Finished Request</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">Test_Android_GuestAccess_2g.py::test_Step_5</td>
+          <td class="col-duration">21.75</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">------------------------------ Captured log call -------------------------------<br/>Test_Android_GuestAccess_2g.py  289 INFO     step-5 Check Guest wireless settings in DUT GUI
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56993/session {"capabilities": {"alwaysMatch": {"acceptInsecureCerts": true, "browserName": "firefox"}, "firstMatch": [{}]}, "desiredCapabilities": {"acceptInsecureCerts": true, "browserName": "firefox"}}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56993/session/962ecd65-8d2e-43b9-962f-164da3f84258/url {"url": "http://admin:Password!@192.168.1.1/WLG_2g_wireless2_2.htm"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56993/session/962ecd65-8d2e-43b9-962f-164da3f84258/element {"using": "css selector", "value": "[name=\"ssid\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56993/session/962ecd65-8d2e-43b9-962f-164da3f84258/execute/sync {"args": [{"element-6066-11e4-a52e-4f735466cecf": "204d91a6-9520-440d-a8cb-c924ace23ee0", "ELEMENT": "204d91a6-9520-440d-a8cb-c924ace23ee0"}, "value"], "script": "return (function(){return function(){var d=this;function f(a){return\"string\"==typeof a};function h(a,b){this.code=a;this.a=l[a]||m;this.message=b||\"\";a=this.a.replace(/((?:^|\\s+)[a-z])/g,function(a){return a.toUpperCase().replace(/^[\\s\\xa0]+/g,\"\")});b=a.length-5;if(0&gt;b||a.indexOf(\"Error\",b)!=b)a+=\"Error\";this.name=a;a=Error(this.message);a.name=this.name;this.stack=a.stack||\"\"}\n(function(){var a=Error;function b(){}b.prototype=a.prototype;h.b=a.prototype;h.prototype=new b;h.prototype.constructor=h;h.a=function(b,c,g){for(var e=Array(arguments.length-2),k=2;k&lt;arguments.length;k++)e[k-2]=arguments[k];return a.prototype[c].apply(b,e)}})();var m=\"unknown error\",l={15:\"element not selectable\",11:\"element not visible\"};l[31]=m;l[30]=m;l[24]=\"invalid cookie domain\";l[29]=\"invalid element coordinates\";l[12]=\"invalid element state\";l[32]=\"invalid selector\";l[51]=\"invalid selector\";\nl[52]=\"invalid selector\";l[17]=\"javascript error\";l[405]=\"unsupported operation\";l[34]=\"move target out of bounds\";l[27]=\"no such alert\";l[7]=\"no such element\";l[8]=\"no such frame\";l[23]=\"no such window\";l[28]=\"script timeout\";l[33]=\"session not created\";l[10]=\"stale element reference\";l[21]=\"timeout\";l[25]=\"unable to set cookie\";l[26]=\"unexpected alert open\";l[13]=m;l[9]=\"unknown command\";h.prototype.toString=function(){return this.name+\": \"+this.message};var n;a:{var p=d.navigator;if(p){var q=p.userAgent;if(q){n=q;break a}}n=\"\"}function r(a){return-1!=n.indexOf(a)};function t(a,b){for(var e=a.length,c=f(a)?a.split(\"\"):a,g=0;g&lt;e;g++)g in c&amp;&amp;b.call(void 0,c[g],g,a)};function v(){return r(\"iPhone\")&amp;&amp;!r(\"iPod\")&amp;&amp;!r(\"iPad\")};function w(){return(r(\"Chrome\")||r(\"CriOS\"))&amp;&amp;!r(\"Edge\")};var x=r(\"Opera\"),y=r(\"Trident\")||r(\"MSIE\"),z=r(\"Edge\"),A=r(\"Gecko\")&amp;&amp;!(-1!=n.toLowerCase().indexOf(\"webkit\")&amp;&amp;!r(\"Edge\"))&amp;&amp;!(r(\"Trident\")||r(\"MSIE\"))&amp;&amp;!r(\"Edge\"),aa=-1!=n.toLowerCase().indexOf(\"webkit\")&amp;&amp;!r(\"Edge\");function B(){var a=d.document;return a?a.documentMode:void 0}var C;\na:{var D=\"\",E=function(){var a=n;if(A)return/rv\\:([^\\);]+)(\\)|;)/.exec(a);if(z)return/Edge\\/([\\d\\.]+)/.exec(a);if(y)return/\\b(?:MSIE|rv)[: ]([^\\);]+)(\\)|;)/.exec(a);if(aa)return/WebKit\\/(\\S+)/.exec(a);if(x)return/(?:Version)[ \\/]?(\\S+)/.exec(a)}();E&amp;&amp;(D=E?E[1]:\"\");if(y){var F=B();if(null!=F&amp;&amp;F&gt;parseFloat(D)){C=String(F);break a}}C=D}var G;var H=d.document;G=H&amp;&amp;y?B()||(\"CSS1Compat\"==H.compatMode?parseInt(C,10):5):void 0;var ba=r(\"Firefox\"),ca=v()||r(\"iPod\"),da=r(\"iPad\"),I=r(\"Android\")&amp;&amp;!(w()||r(\"Firefox\")||r(\"Opera\")||r(\"Silk\")),ea=w(),J=r(\"Safari\")&amp;&amp;!(w()||r(\"Coast\")||r(\"Opera\")||r(\"Edge\")||r(\"Silk\")||r(\"Android\"))&amp;&amp;!(v()||r(\"iPad\")||r(\"iPod\"));function K(a){return(a=a.exec(n))?a[1]:\"\"}(function(){if(ba)return K(/Firefox\\/([0-9.]+)/);if(y||z||x)return C;if(ea)return v()||r(\"iPad\")||r(\"iPod\")?K(/CriOS\\/([0-9.]+)/):K(/Chrome\\/([0-9.]+)/);if(J&amp;&amp;!(v()||r(\"iPad\")||r(\"iPod\")))return K(/Version\\/([0-9.]+)/);if(ca||da){var a=/Version\\/(\\S+).*Mobile\\/(\\S+)/.exec(n);if(a)return a[1]+\".\"+a[2]}else if(I)return(a=K(/Android\\s+([0-9.]+)/))?a:K(/Version\\/([0-9.]+)/);return\"\"})();var L,M=function(){if(!A)return!1;var a=d.Components;if(!a)return!1;try{if(!a.classes)return!1}catch(g){return!1}var b=a.classes,a=a.interfaces,e=b[\"@mozilla.org/xpcom/version-comparator;1\"].getService(a.nsIVersionComparator),c=b[\"@mozilla.org/xre/app-info;1\"].getService(a.nsIXULAppInfo).version;L=function(a){e.compare(c,\"\"+a)};return!0}(),N=y&amp;&amp;!(8&lt;=Number(G)),fa=y&amp;&amp;!(9&lt;=Number(G));I&amp;&amp;M&amp;&amp;L(2.3);I&amp;&amp;M&amp;&amp;L(4);J&amp;&amp;M&amp;&amp;L(6);var ga={SCRIPT:1,STYLE:1,HEAD:1,IFRAME:1,OBJECT:1},O={IMG:\" \",BR:\"\\n\"};function P(a,b,e){if(!(a.nodeName in ga))if(3==a.nodeType)e?b.push(String(a.nodeValue).replace(/(\\r\\n|\\r|\\n)/g,\"\")):b.push(a.nodeValue);else if(a.nodeName in O)b.push(O[a.nodeName]);else for(a=a.firstChild;a;)P(a,b,e),a=a.nextSibling};function Q(a,b){b=b.toLowerCase();return\"style\"==b?ha(a.style.cssText):N&amp;&amp;\"value\"==b&amp;&amp;R(a,\"INPUT\")?a.value:fa&amp;&amp;!0===a[b]?String(a.getAttribute(b)):(a=a.getAttributeNode(b))&amp;&amp;a.specified?a.value:null}var ia=/[;]+(?=(?:(?:[^\"]*\"){2})*[^\"]*$)(?=(?:(?:[^']*'){2})*[^']*$)(?=(?:[^()]*\\([^()]*\\))*[^()]*$)/;\nfunction ha(a){var b=[];t(a.split(ia),function(a){var c=a.indexOf(\":\");0&lt;c&amp;&amp;(a=[a.slice(0,c),a.slice(c+1)],2==a.length&amp;&amp;b.push(a[0].toLowerCase(),\":\",a[1],\";\"))});b=b.join(\"\");return b=\";\"==b.charAt(b.length-1)?b:b+\";\"}function S(a,b){N&amp;&amp;\"value\"==b&amp;&amp;R(a,\"OPTION\")&amp;&amp;null===Q(a,\"value\")?(b=[],P(a,b,!1),a=b.join(\"\")):a=a[b];return a}function R(a,b){b&amp;&amp;\"string\"!==typeof b&amp;&amp;(b=b.toString());return!!a&amp;&amp;1==a.nodeType&amp;&amp;(!b||a.tagName.toUpperCase()==b)}\nfunction T(a){return R(a,\"OPTION\")?!0:R(a,\"INPUT\")?(a=a.type.toLowerCase(),\"checkbox\"==a||\"radio\"==a):!1};var ja={\"class\":\"className\",readonly:\"readOnly\"},U=\"async autofocus autoplay checked compact complete controls declare defaultchecked defaultselected defer disabled draggable ended formnovalidate hidden indeterminate iscontenteditable ismap itemscope loop multiple muted nohref noresize noshade novalidate nowrap open paused pubdate readonly required reversed scoped seamless seeking selected spellcheck truespeed willvalidate\".split(\" \");function V(a,b){var e=null,c=b.toLowerCase();if(\"style\"==c)return(e=a.style)&amp;&amp;!f(e)&amp;&amp;(e=e.cssText),e;if((\"selected\"==c||\"checked\"==c)&amp;&amp;T(a)){if(!T(a))throw new h(15,\"Element is not selectable\");b=\"selected\";e=a.type&amp;&amp;a.type.toLowerCase();if(\"checkbox\"==e||\"radio\"==e)b=\"checked\";return S(a,b)?\"true\":null}var g=R(a,\"A\");if(R(a,\"IMG\")&amp;&amp;\"src\"==c||g&amp;&amp;\"href\"==c)return(e=Q(a,c))&amp;&amp;(e=S(a,c)),e;if(\"spellcheck\"==c){e=Q(a,c);if(null!==e){if(\"false\"==e.toLowerCase())return\"false\";if(\"true\"==e.toLowerCase())return\"true\"}return S(a,\nc)+\"\"}g=ja[b]||b;a:if(f(U))c=f(c)&amp;&amp;1==c.length?U.indexOf(c,0):-1;else{for(var u=0;u&lt;U.length;u++)if(u in U&amp;&amp;U[u]===c){c=u;break a}c=-1}if(0&lt;=c)return(e=null!==Q(a,b)||S(a,g))?\"true\":null;try{var k=S(a,g)}catch(ka){}(c=null==k)||(c=typeof k,c=\"object\"==c&amp;&amp;null!=k||\"function\"==c);c?e=Q(a,b):e=k;return null!=e?e.toString():null}var W=[\"_\"],X=d;W[0]in X||!X.execScript||X.execScript(\"var \"+W[0]);\nfor(var Y;W.length&amp;&amp;(Y=W.shift());){var Z;if(Z=!W.length)Z=void 0!==V;Z?X[Y]=V:X[Y]&amp;&amp;X[Y]!==Object.prototype[Y]?X=X[Y]:X=X[Y]={}};; return this._.apply(null,arguments);}.apply({navigator:typeof window!='undefined'?window.navigator:null,document:typeof window!='undefined'?window.document:null}, arguments);}\n).apply(null, arguments);"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56993/session/962ecd65-8d2e-43b9-962f-164da3f84258/element {"using": "css selector", "value": "[name=\"passphrase\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56993/session/962ecd65-8d2e-43b9-962f-164da3f84258/execute/sync {"args": [{"element-6066-11e4-a52e-4f735466cecf": "ea7d6dc2-f753-49e3-ad47-d44fe2b537a3", "ELEMENT": "ea7d6dc2-f753-49e3-ad47-d44fe2b537a3"}, "value"], "script": "return (function(){return function(){var d=this;function f(a){return\"string\"==typeof a};function h(a,b){this.code=a;this.a=l[a]||m;this.message=b||\"\";a=this.a.replace(/((?:^|\\s+)[a-z])/g,function(a){return a.toUpperCase().replace(/^[\\s\\xa0]+/g,\"\")});b=a.length-5;if(0&gt;b||a.indexOf(\"Error\",b)!=b)a+=\"Error\";this.name=a;a=Error(this.message);a.name=this.name;this.stack=a.stack||\"\"}\n(function(){var a=Error;function b(){}b.prototype=a.prototype;h.b=a.prototype;h.prototype=new b;h.prototype.constructor=h;h.a=function(b,c,g){for(var e=Array(arguments.length-2),k=2;k&lt;arguments.length;k++)e[k-2]=arguments[k];return a.prototype[c].apply(b,e)}})();var m=\"unknown error\",l={15:\"element not selectable\",11:\"element not visible\"};l[31]=m;l[30]=m;l[24]=\"invalid cookie domain\";l[29]=\"invalid element coordinates\";l[12]=\"invalid element state\";l[32]=\"invalid selector\";l[51]=\"invalid selector\";\nl[52]=\"invalid selector\";l[17]=\"javascript error\";l[405]=\"unsupported operation\";l[34]=\"move target out of bounds\";l[27]=\"no such alert\";l[7]=\"no such element\";l[8]=\"no such frame\";l[23]=\"no such window\";l[28]=\"script timeout\";l[33]=\"session not created\";l[10]=\"stale element reference\";l[21]=\"timeout\";l[25]=\"unable to set cookie\";l[26]=\"unexpected alert open\";l[13]=m;l[9]=\"unknown command\";h.prototype.toString=function(){return this.name+\": \"+this.message};var n;a:{var p=d.navigator;if(p){var q=p.userAgent;if(q){n=q;break a}}n=\"\"}function r(a){return-1!=n.indexOf(a)};function t(a,b){for(var e=a.length,c=f(a)?a.split(\"\"):a,g=0;g&lt;e;g++)g in c&amp;&amp;b.call(void 0,c[g],g,a)};function v(){return r(\"iPhone\")&amp;&amp;!r(\"iPod\")&amp;&amp;!r(\"iPad\")};function w(){return(r(\"Chrome\")||r(\"CriOS\"))&amp;&amp;!r(\"Edge\")};var x=r(\"Opera\"),y=r(\"Trident\")||r(\"MSIE\"),z=r(\"Edge\"),A=r(\"Gecko\")&amp;&amp;!(-1!=n.toLowerCase().indexOf(\"webkit\")&amp;&amp;!r(\"Edge\"))&amp;&amp;!(r(\"Trident\")||r(\"MSIE\"))&amp;&amp;!r(\"Edge\"),aa=-1!=n.toLowerCase().indexOf(\"webkit\")&amp;&amp;!r(\"Edge\");function B(){var a=d.document;return a?a.documentMode:void 0}var C;\na:{var D=\"\",E=function(){var a=n;if(A)return/rv\\:([^\\);]+)(\\)|;)/.exec(a);if(z)return/Edge\\/([\\d\\.]+)/.exec(a);if(y)return/\\b(?:MSIE|rv)[: ]([^\\);]+)(\\)|;)/.exec(a);if(aa)return/WebKit\\/(\\S+)/.exec(a);if(x)return/(?:Version)[ \\/]?(\\S+)/.exec(a)}();E&amp;&amp;(D=E?E[1]:\"\");if(y){var F=B();if(null!=F&amp;&amp;F&gt;parseFloat(D)){C=String(F);break a}}C=D}var G;var H=d.document;G=H&amp;&amp;y?B()||(\"CSS1Compat\"==H.compatMode?parseInt(C,10):5):void 0;var ba=r(\"Firefox\"),ca=v()||r(\"iPod\"),da=r(\"iPad\"),I=r(\"Android\")&amp;&amp;!(w()||r(\"Firefox\")||r(\"Opera\")||r(\"Silk\")),ea=w(),J=r(\"Safari\")&amp;&amp;!(w()||r(\"Coast\")||r(\"Opera\")||r(\"Edge\")||r(\"Silk\")||r(\"Android\"))&amp;&amp;!(v()||r(\"iPad\")||r(\"iPod\"));function K(a){return(a=a.exec(n))?a[1]:\"\"}(function(){if(ba)return K(/Firefox\\/([0-9.]+)/);if(y||z||x)return C;if(ea)return v()||r(\"iPad\")||r(\"iPod\")?K(/CriOS\\/([0-9.]+)/):K(/Chrome\\/([0-9.]+)/);if(J&amp;&amp;!(v()||r(\"iPad\")||r(\"iPod\")))return K(/Version\\/([0-9.]+)/);if(ca||da){var a=/Version\\/(\\S+).*Mobile\\/(\\S+)/.exec(n);if(a)return a[1]+\".\"+a[2]}else if(I)return(a=K(/Android\\s+([0-9.]+)/))?a:K(/Version\\/([0-9.]+)/);return\"\"})();var L,M=function(){if(!A)return!1;var a=d.Components;if(!a)return!1;try{if(!a.classes)return!1}catch(g){return!1}var b=a.classes,a=a.interfaces,e=b[\"@mozilla.org/xpcom/version-comparator;1\"].getService(a.nsIVersionComparator),c=b[\"@mozilla.org/xre/app-info;1\"].getService(a.nsIXULAppInfo).version;L=function(a){e.compare(c,\"\"+a)};return!0}(),N=y&amp;&amp;!(8&lt;=Number(G)),fa=y&amp;&amp;!(9&lt;=Number(G));I&amp;&amp;M&amp;&amp;L(2.3);I&amp;&amp;M&amp;&amp;L(4);J&amp;&amp;M&amp;&amp;L(6);var ga={SCRIPT:1,STYLE:1,HEAD:1,IFRAME:1,OBJECT:1},O={IMG:\" \",BR:\"\\n\"};function P(a,b,e){if(!(a.nodeName in ga))if(3==a.nodeType)e?b.push(String(a.nodeValue).replace(/(\\r\\n|\\r|\\n)/g,\"\")):b.push(a.nodeValue);else if(a.nodeName in O)b.push(O[a.nodeName]);else for(a=a.firstChild;a;)P(a,b,e),a=a.nextSibling};function Q(a,b){b=b.toLowerCase();return\"style\"==b?ha(a.style.cssText):N&amp;&amp;\"value\"==b&amp;&amp;R(a,\"INPUT\")?a.value:fa&amp;&amp;!0===a[b]?String(a.getAttribute(b)):(a=a.getAttributeNode(b))&amp;&amp;a.specified?a.value:null}var ia=/[;]+(?=(?:(?:[^\"]*\"){2})*[^\"]*$)(?=(?:(?:[^']*'){2})*[^']*$)(?=(?:[^()]*\\([^()]*\\))*[^()]*$)/;\nfunction ha(a){var b=[];t(a.split(ia),function(a){var c=a.indexOf(\":\");0&lt;c&amp;&amp;(a=[a.slice(0,c),a.slice(c+1)],2==a.length&amp;&amp;b.push(a[0].toLowerCase(),\":\",a[1],\";\"))});b=b.join(\"\");return b=\";\"==b.charAt(b.length-1)?b:b+\";\"}function S(a,b){N&amp;&amp;\"value\"==b&amp;&amp;R(a,\"OPTION\")&amp;&amp;null===Q(a,\"value\")?(b=[],P(a,b,!1),a=b.join(\"\")):a=a[b];return a}function R(a,b){b&amp;&amp;\"string\"!==typeof b&amp;&amp;(b=b.toString());return!!a&amp;&amp;1==a.nodeType&amp;&amp;(!b||a.tagName.toUpperCase()==b)}\nfunction T(a){return R(a,\"OPTION\")?!0:R(a,\"INPUT\")?(a=a.type.toLowerCase(),\"checkbox\"==a||\"radio\"==a):!1};var ja={\"class\":\"className\",readonly:\"readOnly\"},U=\"async autofocus autoplay checked compact complete controls declare defaultchecked defaultselected defer disabled draggable ended formnovalidate hidden indeterminate iscontenteditable ismap itemscope loop multiple muted nohref noresize noshade novalidate nowrap open paused pubdate readonly required reversed scoped seamless seeking selected spellcheck truespeed willvalidate\".split(\" \");function V(a,b){var e=null,c=b.toLowerCase();if(\"style\"==c)return(e=a.style)&amp;&amp;!f(e)&amp;&amp;(e=e.cssText),e;if((\"selected\"==c||\"checked\"==c)&amp;&amp;T(a)){if(!T(a))throw new h(15,\"Element is not selectable\");b=\"selected\";e=a.type&amp;&amp;a.type.toLowerCase();if(\"checkbox\"==e||\"radio\"==e)b=\"checked\";return S(a,b)?\"true\":null}var g=R(a,\"A\");if(R(a,\"IMG\")&amp;&amp;\"src\"==c||g&amp;&amp;\"href\"==c)return(e=Q(a,c))&amp;&amp;(e=S(a,c)),e;if(\"spellcheck\"==c){e=Q(a,c);if(null!==e){if(\"false\"==e.toLowerCase())return\"false\";if(\"true\"==e.toLowerCase())return\"true\"}return S(a,\nc)+\"\"}g=ja[b]||b;a:if(f(U))c=f(c)&amp;&amp;1==c.length?U.indexOf(c,0):-1;else{for(var u=0;u&lt;U.length;u++)if(u in U&amp;&amp;U[u]===c){c=u;break a}c=-1}if(0&lt;=c)return(e=null!==Q(a,b)||S(a,g))?\"true\":null;try{var k=S(a,g)}catch(ka){}(c=null==k)||(c=typeof k,c=\"object\"==c&amp;&amp;null!=k||\"function\"==c);c?e=Q(a,b):e=k;return null!=e?e.toString():null}var W=[\"_\"],X=d;W[0]in X||!X.execScript||X.execScript(\"var \"+W[0]);\nfor(var Y;W.length&amp;&amp;(Y=W.shift());){var Z;if(Z=!W.length)Z=void 0!==V;Z?X[Y]=V:X[Y]&amp;&amp;X[Y]!==Object.prototype[Y]?X=X[Y]:X=X[Y]={}};; return this._.apply(null,arguments);}.apply({navigator:typeof window!='undefined'?window.navigator:null,document:typeof window!='undefined'?window.document:null}, arguments);}\n).apply(null, arguments);"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:56993/session/962ecd65-8d2e-43b9-962f-164da3f84258/element {"using": "css selector", "value": "[name=\"enable_bssid\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:56993/session/962ecd65-8d2e-43b9-962f-164da3f84258/element/1b86cae9-d2de-474b-9e00-f520b5b07dbf/selected {"id": "1b86cae9-d2de-474b-9e00-f520b5b07dbf"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    DELETE http://127.0.0.1:56993/session/962ecd65-8d2e-43b9-962f-164da3f84258 {}
+remote_connection.py       567 DEBUG    Finished Request
+Test_Android_GuestAccess_2g.py  307 INFO     True
+Test_Android_GuestAccess_2g.py  308 INFO     GenieAPP_ATE_2G_Guest
+Test_Android_GuestAccess_2g.py  309 INFO     00000000</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">Test_Android_GuestAccess_2g.py::test_Step_6_1</td>
+          <td class="col-duration">60.62</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">------------------------------ Captured log call -------------------------------<br/>Test_Android_GuestAccess_2g.py  317 INFO     test_Step_6_1 Set 2.4G DUT wireless ssid
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57069/session {"capabilities": {"alwaysMatch": {"acceptInsecureCerts": true, "browserName": "firefox"}, "firstMatch": [{}]}, "desiredCapabilities": {"acceptInsecureCerts": true, "browserName": "firefox"}}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57069/session/2ddf1b75-5458-4e46-8dd8-0b20fb7ba1ac/url {"url": "http://admin:Password!@192.168.1.1/WLG_home.htm"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57069/session/2ddf1b75-5458-4e46-8dd8-0b20fb7ba1ac/element {"using": "css selector", "value": "[name=\"ssid\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57069/session/2ddf1b75-5458-4e46-8dd8-0b20fb7ba1ac/element/feeb3b7b-7bc6-4fc9-b0eb-c665ef5f9100/clear {"id": "feeb3b7b-7bc6-4fc9-b0eb-c665ef5f9100"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57069/session/2ddf1b75-5458-4e46-8dd8-0b20fb7ba1ac/element {"using": "css selector", "value": "[name=\"ssid\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57069/session/2ddf1b75-5458-4e46-8dd8-0b20fb7ba1ac/element/feeb3b7b-7bc6-4fc9-b0eb-c665ef5f9100/value {"text": "000_test", "id": "feeb3b7b-7bc6-4fc9-b0eb-c665ef5f9100", "value": ["0", "0", "0", "_", "t", "e", "s", "t"]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57069/session/2ddf1b75-5458-4e46-8dd8-0b20fb7ba1ac/element {"using": "css selector", "value": "[name=\"passphrase\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57069/session/2ddf1b75-5458-4e46-8dd8-0b20fb7ba1ac/element/2b5dc7fc-0e01-4fbb-835b-6d4806275e31/clear {"id": "2b5dc7fc-0e01-4fbb-835b-6d4806275e31"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57069/session/2ddf1b75-5458-4e46-8dd8-0b20fb7ba1ac/element {"using": "css selector", "value": "[name=\"passphrase\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57069/session/2ddf1b75-5458-4e46-8dd8-0b20fb7ba1ac/element/2b5dc7fc-0e01-4fbb-835b-6d4806275e31/value {"text": "88888888", "id": "2b5dc7fc-0e01-4fbb-835b-6d4806275e31", "value": ["8", "8", "8", "8", "8", "8", "8", "8"]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57069/session/2ddf1b75-5458-4e46-8dd8-0b20fb7ba1ac/element {"using": "css selector", "value": "[name=\"Apply\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57069/session/2ddf1b75-5458-4e46-8dd8-0b20fb7ba1ac/element/6f8e12dd-55c8-44b2-aedd-7561842ceb25/click {"id": "6f8e12dd-55c8-44b2-aedd-7561842ceb25"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:57069/session/2ddf1b75-5458-4e46-8dd8-0b20fb7ba1ac/alert/text {}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57069/session/2ddf1b75-5458-4e46-8dd8-0b20fb7ba1ac/alert/accept {}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    DELETE http://127.0.0.1:57069/session/2ddf1b75-5458-4e46-8dd8-0b20fb7ba1ac {}
+remote_connection.py       567 DEBUG    Finished Request</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">Test_Android_GuestAccess_2g.py::test_Step_6</td>
+          <td class="col-duration">232.45</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">------------------------------ Captured log call -------------------------------<br/>Test_Android_GuestAccess_2g.py  338 INFO     step-6 android device can connect to DUT with Guest Access settings
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session {"capabilities": {"alwaysMatch": {"platformName": "Android"}, "firstMatch": [{}]}, "desiredCapabilities": {"platformVersion": "4.4.2", "deviceName": "7e2b2d2", "platformName": "Android", "appActivity": ".MiuiSettings", "appPackage": "com.android.settings"}}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/element {"using": "id", "sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "value": "miui:id/value_right"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/element/1/attribute/text {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "name": "text", "id": "1"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/element {"using": "id", "sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "value": "miui:id/value_right"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/element/2/click {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "id": "2"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/window/current/size {"windowHandle": "current", "sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/window/current/size {"windowHandle": "current", "sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/touch/perform {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/element {"using": "name", "sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "value": "\u5176\u4ed6..."}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/element/3/click {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "id": "3"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/ime/activate {"engine": "com.google.android.inputmethod.pinyin/.PinyinIME", "sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/element {"using": "class name", "sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "value": "android.widget.EditText"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/element/4/value {"text": "GenieAPP_ATE_2G_Guest", "sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "id": "4", "value": ["G", "e", "n", "i", "e", "A", "P", "P", "_", "A", "T", "E", "_", "2", "G", "_", "G", "u", "e", "s", "t"]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/element {"using": "id", "sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "value": "android:id/text1"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/element/5/click {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "id": "5"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/element {"using": "-android uiautomator", "sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "value": "new UiSelector().text(\"WPA/WPA2 PSK\")"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/element/6/click {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "id": "6"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/element {"using": "id", "sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "value": "com.android.settings:id/password"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/element/7/value {"text": "00000000", "sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "id": "7", "value": ["0", "0", "0", "0", "0", "0", "0", "0"]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/element {"using": "id", "sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "value": "android:id/button2"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/element/8/click {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "id": "8"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc/element {"using": "name", "sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc", "value": "GenieAPP_ATE_2G_Guest"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    DELETE http://127.0.0.1:4723/wd/hub/session/a82fc170-0288-4dc6-b0a5-94635979b5fc {"sessionId": "a82fc170-0288-4dc6-b0a5-94635979b5fc"}
+remote_connection.py       567 DEBUG    Finished Request</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">Test_Android_GuestAccess_2g.py::test_Step_8</td>
+          <td class="col-duration">109.19</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">------------------------------ Captured log call -------------------------------<br/>Test_Android_GuestAccess_2g.py  428 INFO     step-8 Run NETGEAR Genie app and login on this device, verify it can’t be login.
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session {"capabilities": {"alwaysMatch": {"platformName": "Android"}, "firstMatch": [{}]}, "desiredCapabilities": {"platformVersion": "4.4.2", "deviceName": "7e2b2d2", "platformName": "Android", "appActivity": ".genie.main.ui.SplashActivity", "appPackage": "com.dragonflow"}}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element {"using": "name", "sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "value": "\u8bbf\u5ba2 WiFi"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element/1/click {"sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "id": "1"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element {"using": "name", "sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "value": "\u8bbf\u5ba2 WiFi"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element {"using": "id", "sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "value": "com.dragonflow:id/local_but_loginclose"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element {"using": "id", "sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "value": "com.dragonflow:id/local_access_login"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element/2/attribute/text {"sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "name": "text", "id": "2"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/ime/activate {"engine": "com.google.android.inputmethod.pinyin/.PinyinIME", "sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element {"using": "id", "sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "value": "com.dragonflow:id/local_access_password"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element/3/clear {"sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "id": "3"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element {"using": "id", "sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "value": "com.dragonflow:id/local_access_password"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element/4/value {"text": "Password!", "sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "id": "4", "value": ["P", "a", "s", "s", "w", "o", "r", "d", "!"]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/appium/device/hide_keyboard {"sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "strategy": "tapOutside"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element {"using": "id", "sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "value": "com.dragonflow:id/local_access_login"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element/5/click {"sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "id": "5"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element {"using": "id", "sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "value": "com.dragonflow:id/na_next_btn"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element/6/attribute/text {"sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "name": "text", "id": "6"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element {"using": "id", "sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "value": "com.dragonflow:id/noaccess_backbtn"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element/7/click {"sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "id": "7"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element {"using": "id", "sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "value": "com.dragonflow:id/local_access_login"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element/8/click {"sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "id": "8"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element {"using": "id", "sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "value": "com.dragonflow:id/local_but_loginclose"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b/element {"using": "id", "sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b", "value": "com.dragonflow:id/local_access_login"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    DELETE http://127.0.0.1:4723/wd/hub/session/9e6c5ab7-2632-4831-826d-778ee7116a8b {"sessionId": "9e6c5ab7-2632-4831-826d-778ee7116a8b"}
+remote_connection.py       567 DEBUG    Finished Request</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">Test_Android_GuestAccess_2g.py::test_Step_9_1</td>
+          <td class="col-duration">80.18</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">------------------------------ Captured log call -------------------------------<br/>Test_Android_GuestAccess_2g.py  499 INFO     test_Step_9_1 Set DUT wireless 2.4G ssid
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57944/session {"capabilities": {"alwaysMatch": {"acceptInsecureCerts": true, "browserName": "firefox"}, "firstMatch": [{}]}, "desiredCapabilities": {"acceptInsecureCerts": true, "browserName": "firefox"}}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57944/session/2af0dcc2-c8f4-4afd-98ec-80840236c4e9/url {"url": "http://admin:Password!@192.168.1.1/WLG_home.htm"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57944/session/2af0dcc2-c8f4-4afd-98ec-80840236c4e9/element {"using": "css selector", "value": "[name=\"ssid\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57944/session/2af0dcc2-c8f4-4afd-98ec-80840236c4e9/element/ea801723-e73c-4632-b48e-4784e720f9b1/clear {"id": "ea801723-e73c-4632-b48e-4784e720f9b1"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57944/session/2af0dcc2-c8f4-4afd-98ec-80840236c4e9/element {"using": "css selector", "value": "[name=\"ssid\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57944/session/2af0dcc2-c8f4-4afd-98ec-80840236c4e9/element/ea801723-e73c-4632-b48e-4784e720f9b1/value {"text": "GenieAPP_ATE_2G", "id": "ea801723-e73c-4632-b48e-4784e720f9b1", "value": ["G", "e", "n", "i", "e", "A", "P", "P", "_", "A", "T", "E", "_", "2", "G"]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57944/session/2af0dcc2-c8f4-4afd-98ec-80840236c4e9/element {"using": "css selector", "value": "[name=\"passphrase\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57944/session/2af0dcc2-c8f4-4afd-98ec-80840236c4e9/element/357132c9-31d6-499b-bb37-dc601f8e4abd/clear {"id": "357132c9-31d6-499b-bb37-dc601f8e4abd"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57944/session/2af0dcc2-c8f4-4afd-98ec-80840236c4e9/element {"using": "css selector", "value": "[name=\"passphrase\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57944/session/2af0dcc2-c8f4-4afd-98ec-80840236c4e9/element/357132c9-31d6-499b-bb37-dc601f8e4abd/value {"text": "88888888", "id": "357132c9-31d6-499b-bb37-dc601f8e4abd", "value": ["8", "8", "8", "8", "8", "8", "8", "8"]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57944/session/2af0dcc2-c8f4-4afd-98ec-80840236c4e9/element {"using": "css selector", "value": "[name=\"Apply\"]"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57944/session/2af0dcc2-c8f4-4afd-98ec-80840236c4e9/element/869aa710-81e2-4330-ab7b-b084016019c3/click {"id": "869aa710-81e2-4330-ab7b-b084016019c3"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:57944/session/2af0dcc2-c8f4-4afd-98ec-80840236c4e9/alert/text {}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:57944/session/2af0dcc2-c8f4-4afd-98ec-80840236c4e9/alert/accept {}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    DELETE http://127.0.0.1:57944/session/2af0dcc2-c8f4-4afd-98ec-80840236c4e9 {}
+remote_connection.py       567 DEBUG    Finished Request</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">Test_Android_GuestAccess_2g.py::test_Step_9</td>
+          <td class="col-duration">229.54</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">------------------------------ Captured log call -------------------------------<br/>Test_Android_GuestAccess_2g.py  520 INFO     step-9 Android device 2G connect to DUT
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session {"capabilities": {"alwaysMatch": {"platformName": "Android"}, "firstMatch": [{}]}, "desiredCapabilities": {"platformVersion": "4.4.2", "deviceName": "7e2b2d2", "platformName": "Android", "appActivity": ".MiuiSettings", "appPackage": "com.android.settings"}}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/element {"using": "id", "sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "value": "miui:id/value_right"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/element/1/attribute/text {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "name": "text", "id": "1"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/element {"using": "id", "sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "value": "miui:id/value_right"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/element/2/click {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "id": "2"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/window/current/size {"windowHandle": "current", "sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/window/current/size {"windowHandle": "current", "sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/touch/perform {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "actions": [{"action": "press", "options": {"y": 1440, "x": 540}}, {"action": "wait", "options": {"ms": 500}}, {"action": "moveTo", "options": {"y": 480, "x": 540}}, {"action": "release", "options": {}}]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/element {"using": "name", "sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "value": "\u5176\u4ed6..."}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/element/3/click {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "id": "3"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/ime/activate {"engine": "com.google.android.inputmethod.pinyin/.PinyinIME", "sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/element {"using": "class name", "sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "value": "android.widget.EditText"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/element/4/value {"text": "GenieAPP_ATE_2G", "sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "id": "4", "value": ["G", "e", "n", "i", "e", "A", "P", "P", "_", "A", "T", "E", "_", "2", "G"]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/element {"using": "id", "sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "value": "android:id/text1"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/element/5/click {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "id": "5"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/element {"using": "-android uiautomator", "sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "value": "new UiSelector().text(\"WPA/WPA2 PSK\")"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/element/6/click {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "id": "6"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/element {"using": "id", "sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "value": "com.android.settings:id/password"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/element/7/value {"text": "88888888", "sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "id": "7", "value": ["8", "8", "8", "8", "8", "8", "8", "8"]}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/element {"using": "id", "sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "value": "android:id/button2"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/element/8/click {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "id": "8"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724/element {"using": "name", "sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724", "value": "GenieAPP_ATE_2G"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    DELETE http://127.0.0.1:4723/wd/hub/session/da602c41-7fb5-4d37-a393-8b3f1225d724 {"sessionId": "da602c41-7fb5-4d37-a393-8b3f1225d724"}
+remote_connection.py       567 DEBUG    Finished Request</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">Test_Android_GuestAccess_2g.py::test_Step_10</td>
+          <td class="col-duration">137.80</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">------------------------------ Captured log call -------------------------------<br/>Test_Android_GuestAccess_2g.py  564 INFO     step-10 Run NETGEAR Genie app-select Disable Guest Access and click Apply
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session {"capabilities": {"alwaysMatch": {"platformName": "Android"}, "firstMatch": [{}]}, "desiredCapabilities": {"platformVersion": "4.4.2", "deviceName": "7e2b2d2", "platformName": "Android", "appActivity": ".genie.main.ui.SplashActivity", "appPackage": "com.dragonflow"}}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/501cd17b-456f-42e6-aa5a-53fe8d20e7c5/element {"using": "name", "sessionId": "501cd17b-456f-42e6-aa5a-53fe8d20e7c5", "value": "\u8bbf\u5ba2 WiFi"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/501cd17b-456f-42e6-aa5a-53fe8d20e7c5/element/1/click {"sessionId": "501cd17b-456f-42e6-aa5a-53fe8d20e7c5", "id": "1"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/501cd17b-456f-42e6-aa5a-53fe8d20e7c5/element {"using": "name", "sessionId": "501cd17b-456f-42e6-aa5a-53fe8d20e7c5", "value": "\u8bbf\u5ba2 WiFi"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/501cd17b-456f-42e6-aa5a-53fe8d20e7c5/element/2/click {"sessionId": "501cd17b-456f-42e6-aa5a-53fe8d20e7c5", "id": "2"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/501cd17b-456f-42e6-aa5a-53fe8d20e7c5/element {"using": "id", "sessionId": "501cd17b-456f-42e6-aa5a-53fe8d20e7c5", "value": "com.dragonflow:id/local_but_loginclose"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/501cd17b-456f-42e6-aa5a-53fe8d20e7c5/element {"using": "id", "sessionId": "501cd17b-456f-42e6-aa5a-53fe8d20e7c5", "value": "com.dragonflow:id/local_access_login"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/501cd17b-456f-42e6-aa5a-53fe8d20e7c5/element {"using": "id", "sessionId": "501cd17b-456f-42e6-aa5a-53fe8d20e7c5", "value": "com.dragonflow:id/guestsetting_switch_enable"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:4723/wd/hub/session/501cd17b-456f-42e6-aa5a-53fe8d20e7c5/element/3/attribute/text {"sessionId": "501cd17b-456f-42e6-aa5a-53fe8d20e7c5", "name": "text", "id": "3"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/501cd17b-456f-42e6-aa5a-53fe8d20e7c5/element {"using": "id", "sessionId": "501cd17b-456f-42e6-aa5a-53fe8d20e7c5", "value": "com.dragonflow:id/guestsetting_switch_enable"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/501cd17b-456f-42e6-aa5a-53fe8d20e7c5/element/4/click {"sessionId": "501cd17b-456f-42e6-aa5a-53fe8d20e7c5", "id": "4"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/501cd17b-456f-42e6-aa5a-53fe8d20e7c5/element {"using": "id", "sessionId": "501cd17b-456f-42e6-aa5a-53fe8d20e7c5", "value": "com.dragonflow:id/common_toolbar_righttxt"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/501cd17b-456f-42e6-aa5a-53fe8d20e7c5/element/5/click {"sessionId": "501cd17b-456f-42e6-aa5a-53fe8d20e7c5", "id": "5"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/501cd17b-456f-42e6-aa5a-53fe8d20e7c5/element {"using": "id", "sessionId": "501cd17b-456f-42e6-aa5a-53fe8d20e7c5", "value": "com.dragonflow:id/common_msgdialog_button3"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    GET http://127.0.0.1:4723/wd/hub/session/501cd17b-456f-42e6-aa5a-53fe8d20e7c5/element/6/attribute/text {"sessionId": "501cd17b-456f-42e6-aa5a-53fe8d20e7c5", "name": "text", "id": "6"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/501cd17b-456f-42e6-aa5a-53fe8d20e7c5/element {"using": "id", "sessionId": "501cd17b-456f-42e6-aa5a-53fe8d20e7c5", "value": "com.dragonflow:id/common_msgdialog_button3"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    POST http://127.0.0.1:4723/wd/hub/session/501cd17b-456f-42e6-aa5a-53fe8d20e7c5/element/7/click {"sessionId": "501cd17b-456f-42e6-aa5a-53fe8d20e7c5", "id": "7"}
+remote_connection.py       567 DEBUG    Finished Request
+remote_connection.py       480 DEBUG    DELETE http://127.0.0.1:4723/wd/hub/session/501cd17b-456f-42e6-aa5a-53fe8d20e7c5 {"sessionId": "501cd17b-456f-42e6-aa5a-53fe8d20e7c5"}
+remote_connection.py       567 DEBUG    Finished Request</div></td></tr></tbody></table></body></html>

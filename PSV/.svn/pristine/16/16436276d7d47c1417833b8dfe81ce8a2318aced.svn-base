@@ -1,0 +1,7 @@
+*** Settings ***
+Suite Setup       Common_Setup
+Test Setup        Common_Test_Setup    ${TEST NAME}    ${OUTPUT DIR}
+Test Teardown     Common_Test_Teardown
+Resource          ProjectResource_Envirement.txt
+
+*** Keywords ***

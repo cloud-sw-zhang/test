@@ -1,0 +1,14 @@
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+<SOAP-ENV:Header>
+<SessionID xsi:type="xsd:string"
+xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance">E6A88AE69687E58D9A00</SessionID>
+</SOAP-ENV:Header>
+<SOAP-ENV:Body>
+<Authenticate>
+<NewPassword xsi:type="xsd:string"
+xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance">password</NewPassword>
+<NewUsername xsi:type="xsd:string"
+xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance">admin</NewUsername>
+</Authenticate>
+</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

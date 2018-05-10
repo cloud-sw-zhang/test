@@ -1,0 +1,93 @@
+*** Settings ***
+Resource          ../../ProjectResource_Envirement.txt
+
+*** Test Cases ***
+1.2.2.1 Wi-Fi Tab Test
+    Test1.2.2.1_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.2.2.1_Step1 Log In
+    Test1.2.2.1_Step2 Verify there are three device lists on Wi-Fi tab
+    Test1.2.2.1_Step3 Check each wifi band is filtered
+    Test1.2.2.1_Step4 Check Tab Elements If There Is No Devices Connected
+    Test1.2.2.1_Step5 Check One WIFI Device
+    Test1.2.2.1_Step6 Check The Elements Of WIFI Device Page When Enabled Qos
+
+*** Keywords ***
+Test1.2.2.1_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.2.2.1_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.2.2.1_Step2 Verify there are three device lists on Wi-Fi tab
+    Check_Wifi_Tab
+
+Test1.2.2.1_Step3 Check each wifi band is filtered
+    GUI_Click_Element_CSS    div[id='tabsPanelDevicesMenuDiv']
+    ${Result}    CHECK_Elements_Should_Show    False    li[id='intAllWifiDevicesLi']    li[id='devicesFilterSelector24G']    li[id='devicesFilterSelector5G']    li[id='devicesFilterSelector5G2']
+    ...    li[id='devicesFilterSelector24Guest']    li[id='devicesFilterSelector5Guest']    li[id='devicesFilterSelector5Guest2']
+    Should Be True    '${Result}'=='PASS'
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-2.png
+    GUI_Click_Element_CSS    li[id='intAllWifiDevicesLi']>a>span
+    Sleep    10
+
+Test1.2.2.1_Step4 Check Tab Elements If There Is No Devices Connected
+    GUI_Click_Element_CSS    ul[id='routerStatusHeader']>li[id='tab_0']>a
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-3(1).png
+    GUI_Click_Element_CSS    ul[id='routerStatusHeader']>li[id='tab_1']>a
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-3(2).png
+    GUI_Click_Element_CSS    ul[id='routerStatusHeader']>li[id='tab_2']>a
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-3(3).png
+
+Test1.2.2.1_Step5 Check One WIFI Device
+    #Test Plan Step4-6
+    GUI_Click_Element_CSS    ul[id='devicesHeader']> li[id='tab_0']>a
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-4.png
+    GUI Click Element    a[id='dsDeviceWl__1']
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-5(Qos Off).png
+    Check_Devices_Element
+    FUNCTION_Switch_Dynamic_Qos    On
+    FUNCTION_Goto_Dashboard_Page
+    COMMON_Scroll_To_Element    div[id='devicesDBWrapper']
+    GUI_Click_Element_CSS    ul[id='devicesHeader']> li[id='tab_0']>a
+    GUI Click Element    a[id='dsDeviceWl__1']
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-5(Qos On).png
+
+Test1.2.2.1_Step6 Check The Elements Of WIFI Device Page When Enabled Qos
+    CHECK_Elements_Should_Show    False    a[id='accordionTogglePanelHeadingAlink']    a[id='accordionToggleAlink']
+    GUI_Click_Element_CSS    a[id='accordionTogglePanelHeadingAlink']
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-6.png
+    Run Keyword And Ignore Error    CHECK_Elements_Should_Show    False    div[id='collapseTwoInternetDownloadUsageHeadDiv']    div[id='collapseTwoInternetUploadUsageHeadDiv']    div[id='collapseTwoInternetDownloadUsage']    div[id='collapseTwoInternetUploadUsage']
+    ...    a[id='intMoreOptionsHeadDiv']
+    #Check_Devices_Dropdownlist_When_Qos_On
+    GUI_Click_Element_CSS    a[id='intMoreOptionsHeadDiv']
+    Wait Until Element Is Visible    css=div[id='advMonDevices']    timeout=30s
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-15.png
+
+Check_Wifi_Tab
+    COMMON_Scroll_To_Element    div[id='devicesDBWrapper']
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1.png
+    @{list}    Get_Web_Elements    css=ul[id='devicesHeader']>li
+    @{listvalue}    Create List
+    : FOR    ${i}    IN    @{list}
+    \    ${id}    Get_Element_Attribute    ${i}    id
+    \    ${value}    Get_Text    css=ul[id='devicesHeader']>li[id='${id}']>a>div
+    \    Append To List    ${listvalue}    ${value}
+    Should Contain    @{listvalue}[0]    WIFI
+    Should Contain    @{listvalue}[1]    LAN
+    Should Contain    @{listvalue}[2]    USB
+    ${Result}    CHECK_Elements_Should_Show    False    ul[id='devicesHeader']>li:nth-child(1)>a    ul[id='devicesHeader']>li:nth-child(2)>a    ul[id='devicesHeader']>li:nth-child(3)>a
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    ul[id='devicesHeader']>li:nth-child(1)>a
+    GUI_Click_Element_CSS    ul[id='devicesHeader']>li:nth-child(2)>a
+    GUI_Click_Element_CSS    ul[id='devicesHeader']>li:nth-child(3)>a
+    GUI_Click_Element_CSS    ul[id='devicesHeader']>li:nth-child(1)>a
+
+Check_Devices_Element
+    Run Keyword And Ignore Error    CHECK_Elements_Should_Show    True    div[id='collapseOneNetworkNetworkDiv']    div[id='collapseOneConnectionTypeHeadDiv']    div[id='collapseOneIPAddressHeadDiv']    div[id='collapseOneMACAddressHeadDiv']
+    ...    div[id='collapseOneNetwork']    div[id='collapseOneConnectionType']    div[id='collapseOneIPAddress']    div[id='collapseOneMACAddress']
+    Sleep    5

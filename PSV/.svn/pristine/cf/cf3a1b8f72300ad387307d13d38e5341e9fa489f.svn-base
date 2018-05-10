@@ -1,0 +1,318 @@
+*** Settings ***
+Resource          ../../ProjectResource_Envirement.txt
+
+*** Test Cases ***
+1.2.3.1 Wireless Networks Test
+    Test1.2.3.1_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.2.3.1_Step1 Log In
+    Test1.2.3.1_Step2 Wireless Network Panel Band Check Before Smart On
+    #Test1.2.3.1_Step3 Wireless Network Panel Setting 2G
+    #Test1.2.3.1_Step4 Wireless Network Panel Setting 5G
+    Test1.2.3.1_Step5 Wireless Network Panel Band Check After Smart On
+    Test1.2.3.1_Step6 Wireless Network Panel Config Setting Check
+
+*** Keywords ***
+Test1.2.3.1_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.2.3.1_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.2.3.1_Step2 Wireless Network Panel Band Check Before Smart On
+    FUNCTION_Switch_Smart_Connect    Off
+    Check_Wireless_Network_Panel_Wifi_Band_Smart_Off
+
+Test1.2.3.1_Step3 Wireless Network Panel Setting 2G
+    Run Keyword And Return Status    Check_Wireless_Network_Panel_Wifi_Setting_2g+    #still bug now,switch on off failed
+
+Test1.2.3.1_Step4 Wireless Network Panel Setting 5G
+    Run Keyword And Return Status    Check_Wireless_Network_Panel_Wifi_Setting_5g1+    #still bug now,switch on off failed
+    Run Keyword And Return Status    Check_Wireless_Network_Panel_Wifi_Setting_5g2+    #still bug now,switch on off failed
+
+Test1.2.3.1_Step5 Wireless Network Panel Band Check After Smart On
+    FUNCTION_Switch_Smart_Connect    On
+    Check_Wireless_Network_Panel_Wifi_Band_Smart_On
+
+Test1.2.3.1_Step6 Wireless Network Panel Config Setting Check
+    FUNCTION_Switch_Smart_Connect    Off
+    Check_Wireless_Network_Panel_Config
+
+Check_Wireless_Network_Panel_Wifi_Band_Smart_Off
+    FUNCTION_Goto_Dashboard_Page
+    COMMON_Scroll_To_Element    div[id='wirelesNetworksWrapper']
+    #verify that the default state is wifi networks
+    ${value}    COMMON_Get_Element_Attribute    class    li[id='wncTab_0']>a
+    Should Contain    ${value}    active
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1.png
+    #verify that "<" button or ">" button can switch wifi show on panel----wifi band
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncWifiCarousel'] > div.carousel-inner > div:nth-child(1) > div > div > div:nth-child(3)    2.4 GHz    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselRightCarouselControlAlnik']> span.glyphicon-chevron-right
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncWifiCarousel'] > div.carousel-inner > div:nth-child(2) > div > div > div:nth-child(3)    5 GHz¹    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselRightCarouselControlAlnik']> span.glyphicon-chevron-right
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncWifiCarousel'] > div.carousel-inner > div:nth-child(3) > div > div > div:nth-child(3)    5 GHz²    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselRightCarouselControlAlnik']> span.glyphicon-chevron-right
+    ${Result}    CHECK_Elements_Should_Show    False    div[id='wncWifiCarousel'] > div.carousel-inner > div:nth-child(1) > div > div > div:nth-child(3)
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselLeftCarouselControlAlnik'] > span.glyphicon-chevron-left
+    ${Result}    CHECK_Elements_Should_Show    False    div[id='wncWifiCarousel'] > div.carousel-inner > div:nth-child(3) > div > div > div:nth-child(3)
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselLeftCarouselControlAlnik'] > span.glyphicon-chevron-left
+    ${Result}    CHECK_Elements_Should_Show    False    div[id='wncWifiCarousel'] > div.carousel-inner > div:nth-child(2) > div > div > div:nth-child(3)
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselLeftCarouselControlAlnik'] > span.glyphicon-chevron-left
+    Sleep    2
+    ${Result}    COMMON_Get_Element_Attribute    class    div[id='wncWifiCarousel'] > div.carousel-inner > div:nth-child(1)
+    Should Contain    ${Result}    active
+    #verify that "<" button or ">" button can switch wifi show on panel-----guest network band
+    GUI_Click_Element_CSS    li[id='wncTab_1']>a>div
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncGuestCarousel'] > div.carousel-inner > div:nth-child(1) > div > div > div:nth-child(3)    2.4 GHz    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncGuestCarouselRightCarouselControlAlink']> span.glyphicon-chevron-right
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncGuestCarousel'] > div.carousel-inner > div:nth-child(2) > div > div > div:nth-child(3)    5 GHz¹    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncGuestCarouselRightCarouselControlAlink']> span.glyphicon-chevron-right
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncGuestCarousel'] > div.carousel-inner > div:nth-child(3) > div > div > div:nth-child(3)    5 GHz²    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncGuestCarouselRightCarouselControlAlink']> span.glyphicon-chevron-right
+    ${Result}    CHECK_Elements_Should_Show    False    div[id='wncGuestCarousel'] > div.carousel-inner > div:nth-child(1) > div > div > div:nth-child(3)
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncGuestCarouselLeftCarouselControlAlink']> span.glyphicon-chevron-left
+    ${Result}    CHECK_Elements_Should_Show    False    div[id='wncGuestCarousel'] > div.carousel-inner > div:nth-child(3) > div > div > div:nth-child(3)
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncGuestCarouselLeftCarouselControlAlink']> span.glyphicon-chevron-left
+    ${Result}    CHECK_Elements_Should_Show    False    div[id='wncGuestCarousel'] > div.carousel-inner > div:nth-child(2) > div > div > div:nth-child(3)
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncGuestCarouselLeftCarouselControlAlink']> span.glyphicon-chevron-left
+    Sleep    2
+    ${Result}    COMMON_Get_Element_Attribute    class    div[id='wncGuestCarousel'] > div.carousel-inner > div:nth-child(1)
+    Should Contain    ${Result}    active
+
+Check_Wireless_Network_Panel_Wifi_Setting_2g+
+    FUNCTION_Goto_Dashboard_Page
+    COMMON_Scroll_To_Element    div[id='wirelesNetworksWrapper']
+    #wifi-setting-2.4g check
+    GUI_Click_Element_CSS    li[id='wncTab_0']>a>div
+    #password part check
+    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='wncWifiCarousel'] > div.sc24body.carousel-body > div:nth-child(2) > div:nth-child(1) > span
+    Should Contain    ${Attribute}    closed
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncWifiCarousel2GPassword']    ********    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    div[id='wncWifiCarousel'] > div.sc24body.carousel-body > div:nth-child(2) > div:nth-child(1) > span
+    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='wncWifiCarousel'] > div.sc24body.carousel-body > div:nth-child(2) > div:nth-child(1) > span
+    Should Contain    ${Attribute}    open
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncWifiCarousel2GPassword']    12345678    False
+    Should Be True    '${Result}'=='PASS'
+    #wifi switch check
+    ${Attribute}    COMMON_Get_Element_Attribute    class    label[id='wncWifiCarousel2GNetworkEnabledLabel']
+    ${Result}    ${message}    Run Keyword And Ignore Error    Should Not Contain    ${Attribute}    off
+    Run Keyword If    '${Result}'=='PASS'    GUI_Click_Element_CSS    label[id='wncWifiCarousel2GNetworkEnabledLabel']> div
+    Run Keyword If    '${Result}'=='PASS'    CHECK_Wait_Until_Element_Should    div[id='wirelesNetworksWrapper'] > div.load-box > div.load-box-wrapper    True    30
+    Run Keyword If    '${Result}'=='PASS'    CHECK_Wait_Until_Element_Should    div[id='wirelesNetworksWrapper'] > div.load-box > div.load-box-wrapper    False    30
+    ${Attribute}    COMMON_Get_Element_Attribute    class    label[id='wncWifiCarousel2GNetworkEnabledLabel']
+    Should Contain    ${Attribute}    off
+    #goto wireless page to confirm the setting on Dashboard page
+    FUNCTION_Goto_Advanced_Setup_Wireless_Page
+    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='intEnableSSIDBroadcastControl']
+    Should Contain    ${Attribute}    off
+    GUI_DIVCheckbox_Checked    div[id='intEnableSSIDBroadcastControl']    On    True
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    30
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    30
+    FUNCTION_Goto_Dashboard_Page
+    COMMON_Scroll_To_Element    div[id='wirelesNetworksWrapper']
+    GUI_Click_Element_CSS    li[id='wncTab_0']>a>div
+    ${Attribute}    COMMON_Get_Element_Attribute    class    label[id='wncWifiCarousel2GNetworkEnabledLabel']
+    Should Not Contain    ${Attribute}    off
+
+Check_Wireless_Network_Panel_Wifi_Setting_5g1+
+    FUNCTION_Goto_Dashboard_Page
+    COMMON_Scroll_To_Element    div[id='wirelesNetworksWrapper']
+    GUI_Click_Element_CSS    li[id='wncTab_0']>a>div
+    #wifi-setting-5g1 check
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselRightCarouselControlAlnik']> span.glyphicon-chevron-right
+    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='wncWifiCarousel'] > div.sc51body.carousel-body > div:nth-child(2) > div:nth-child(1) > span
+    Should Contain    ${Attribute}    closed
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncWifiCarousel5GPassword']    ********    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    div[id='wncWifiCarousel'] > div.sc51body.carousel-body > div:nth-child(2) > div:nth-child(1) > span
+    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='wncWifiCarousel'] > div.sc51body.carousel-body > div:nth-child(2) > div:nth-child(1) > span
+    Should Contain    ${Attribute}    open
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncWifiCarousel5GPassword']    12345678    False
+    Should Be True    '${Result}'=='PASS'
+    #wifi switch check
+    ${Attribute}    COMMON_Get_Element_Attribute    class    label[id='wncWifiCarousel5GNetworkEnabledLabel']
+    Should Not Contain    ${Attribute}    off
+    GUI_Click_Element_CSS    label[id='wncWifiCarousel5GNetworkEnabledLabel']
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    30
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    30
+    ${Attribute}    COMMON_Get_Element_Attribute    class    label[id='wncWifiCarousel5GNetworkEnabledLabel']
+    Should Contain    ${Attribute}    off
+    #goto wireless page to confirm the setting on Dashboard page
+    FUNCTION_Goto_Advanced_Setup_Wireless_Page
+    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='intEnableSSIDBroadcastControlDiv']
+    Should Contain    ${Attribute}    off
+    GUI_DIVCheckbox_Checked    div[id='intEnableSSIDBroadcastControlDiv']    On    True
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    30
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    30
+    FUNCTION_Goto_Dashboard_Page
+    COMMON_Scroll_To_Element    div[id='wirelesNetworksWrapper']
+    GUI_Click_Element_CSS    li[id='wncTab_0']>a>div
+    ${Attribute}    COMMON_Get_Element_Attribute    class    label[id='wncWifiCarousel5GNetworkEnabledLabel']
+    Should Not Contain    ${Attribute}    off
+
+Check_Wireless_Network_Panel_Wifi_Setting_5g2+
+    FUNCTION_Goto_Dashboard_Page
+    COMMON_Scroll_To_Element    div[id='wirelesNetworksWrapper']
+    GUI_Click_Element_CSS    li[id='wncTab_0']>a>div
+    #wifi-setting-5g2 check
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselRightCarouselControlAlnik']> span.glyphicon-chevron-right
+    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='wncWifiCarousel'] >div.sc52body.carousel-body > div:nth-child(2) > div:nth-child(1) > span
+    Should Contain    ${Attribute}    closed
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncWifiCarousel5G2Password']    ********    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    div[id='wncWifiCarousel'] >div.sc52body.carousel-body > div:nth-child(2) > div:nth-child(1) > span
+    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='wncWifiCarousel'] >div.sc52body.carousel-body > div:nth-child(2) > div:nth-child(1) > span
+    Should Contain    ${Attribute}    open
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncWifiCarousel5G2Password']    12345678    False
+    Should Be True    '${Result}'=='PASS'
+    #wifi switch check
+    ${Attribute}    COMMON_Get_Element_Attribute    class    label[id='wncWifiCarousel5G2NetworkEnabledLabel']
+    Should Not Contain    ${Attribute}    off
+    GUI_Click_Element_CSS    label[id='wncWifiCarousel5G2NetworkEnabledLabel']
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    30
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    30
+    ${Attribute}    COMMON_Get_Element_Attribute    class    label[id='wncWifiCarousel5G2NetworkEnabledLabel']
+    Should Contain    ${Attribute}    off
+    #goto wireless page to confirm the setting on Dashboard page
+    FUNCTION_Goto_Advanced_Setup_Wireless_Page
+    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='sSIDBroadcast52EnableDiv']
+    Should Contain    ${Attribute}    off
+    GUI_DIVCheckbox_Checked    div[id='sSIDBroadcast52EnableDiv']    On    True
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    30
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    30
+    FUNCTION_Goto_Dashboard_Page
+    COMMON_Scroll_To_Element    div[id='wirelesNetworksWrapper']
+    GUI_Click_Element_CSS    li[id='wncTab_0']>a>div
+    ${Attribute}    COMMON_Get_Element_Attribute    class    label[id='wncWifiCarousel5G2NetworkEnabledLabel']
+    Should Not Contain    ${Attribute}    off
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselRightCarouselControlAlnik']> span.glyphicon-chevron-right
+    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='wncWifiCarousel'] >div.sc52body.carousel-body > div:nth-child(2) > div:nth-child(1) > span
+    Should Contain    ${Attribute}    closed
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncWifiCarousel5G2Password']    ********    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    div[id='wncWifiCarousel'] >div.sc52body.carousel-body > div:nth-child(2) > div:nth-child(1) > span
+    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='wncWifiCarousel'] >div.sc52body.carousel-body > div:nth-child(2) > div:nth-child(1) > span
+    Should Contain    ${Attribute}    open
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncWifiCarousel5G2Password']    12345678    False
+    Should Be True    '${Result}'=='PASS'
+    #wifi switch check
+    ${Attribute}    COMMON_Get_Element_Attribute    class    label[id='wncWifiCarousel5G2NetworkEnabledLabel']
+    Should Not Contain    ${Attribute}    off
+    GUI_Click_Element_CSS    label[id='wncWifiCarousel5G2NetworkEnabledLabel']
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    30
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    30
+    ${Attribute}    COMMON_Get_Element_Attribute    class    label[id='wncWifiCarousel5G2NetworkEnabledLabel']
+    Should Contain    ${Attribute}    off
+    #goto wireless page to confirm the setting on Dashboard page
+    FUNCTION_Goto_Advanced_Setup_Wireless_Page
+    ${Attribute}    COMMON_Get_Element_Attribute    class    div[id='sSIDBroadcast52EnableDiv']
+    Should Contain    ${Attribute}    off
+    GUI_DIVCheckbox_Checked    div[id='sSIDBroadcast52EnableDiv']    On    True
+    GUI_Click_Element_CSS    div[id='submitApplyButton']
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    True    30
+    CHECK_Wait_Until_Element_Should    div[id='modal-actionApply']    False    30
+    FUNCTION_Goto_Dashboard_Page
+    COMMON_Scroll_To_Element    div[id='wirelesNetworksWrapper']
+    GUI_Click_Element_CSS    li[id='wncTab_0']>a>div
+    ${Attribute}    COMMON_Get_Element_Attribute    class    label[id='wncWifiCarousel5G2NetworkEnabledLabel']
+    Should Not Contain    ${Attribute}    off
+
+Check_Wireless_Network_Panel_Wifi_Band_Smart_On
+    FUNCTION_Goto_Dashboard_Page
+    COMMON_Scroll_To_Element    div[id='wirelesNetworksWrapper']
+    GUI_Click_Element_CSS    li[id='wncTab_0']>a>div
+    #verify that "<" button or ">" button can switch wifi show on panel----wifi band
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncWifiCarousel'] > div.carousel-inner > div:nth-child(1) > div > div > div:nth-child(3)    2.4 GHz    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselRightCarouselControlAlnik']> span.glyphicon-chevron-right
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncWifiCarousel'] > div.carousel-inner > div:nth-child(2) > div > div > div:nth-child(3)    5 GHz¹    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselRightCarouselControlAlnik']> span.glyphicon-chevron-right
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncWifiCarousel'] > div.carousel-inner > div:nth-child(3) > div > div > div:nth-child(3)    5 GHz²    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselRightCarouselControlAlnik']> span.glyphicon-chevron-right
+    ${Result}    CHECK_Elements_Should_Show    False    div[id='wncWifiCarousel'] > div.carousel-inner > div:nth-child(1) > div > div > div:nth-child(3)
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselLeftCarouselControlAlnik'] > span.glyphicon-chevron-left
+    ${Result}    CHECK_Elements_Should_Show    False    div[id='wncWifiCarousel'] > div.carousel-inner > div:nth-child(3) > div > div > div:nth-child(3)
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselLeftCarouselControlAlnik'] > span.glyphicon-chevron-left
+    ${Result}    CHECK_Elements_Should_Show    False    div[id='wncWifiCarousel'] > div.carousel-inner > div:nth-child(2) > div > div > div:nth-child(3)
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselLeftCarouselControlAlnik'] > span.glyphicon-chevron-left
+    Sleep    2
+    ${Result}    COMMON_Get_Element_Attribute    class    div[id='wncWifiCarousel'] > div.carousel-inner > div:nth-child(1)
+    Should Contain    ${Result}    active
+    #verify that "<" button or ">" button can switch wifi show on panel-----guest network band
+    GUI_Click_Element_CSS    li[id='wncTab_1']>a>div
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncGuestCarousel'] > div.carousel-inner > div:nth-child(1) > div > div > div:nth-child(3)    2.4 GHz    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncGuestCarouselRightCarouselControlAlink']> span.glyphicon-chevron-right
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncGuestCarousel'] > div.carousel-inner > div:nth-child(2) > div > div > div:nth-child(3)    5 GHz¹    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncGuestCarouselRightCarouselControlAlink']> span.glyphicon-chevron-right
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncGuestCarousel'] > div.carousel-inner > div:nth-child(3) > div > div > div:nth-child(3)    5 GHz²    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncGuestCarouselRightCarouselControlAlink']> span.glyphicon-chevron-right
+    ${Result}    CHECK_Elements_Should_Show    False    div[id='wncGuestCarousel'] > div.carousel-inner > div:nth-child(1) > div > div > div:nth-child(3)
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncGuestCarouselLeftCarouselControlAlink']> span.glyphicon-chevron-left
+    ${Result}    CHECK_Elements_Should_Show    False    div[id='wncGuestCarousel'] > div.carousel-inner > div:nth-child(3) > div > div > div:nth-child(3)
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncGuestCarouselLeftCarouselControlAlink']> span.glyphicon-chevron-left
+    ${Result}    CHECK_Elements_Should_Show    False    div[id='wncGuestCarousel'] > div.carousel-inner > div:nth-child(2) > div > div > div:nth-child(3)
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    a[id='wncGuestCarouselLeftCarouselControlAlink']> span.glyphicon-chevron-left
+    Sleep    2
+    ${Result}    COMMON_Get_Element_Attribute    class    div[id='wncGuestCarousel'] > div.carousel-inner > div:nth-child(1)
+    Should Contain    ${Result}    active
+    #smart 5g1 check
+    GUI_Click_Element_CSS    li[id='wncTab_0']>a>div
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselRightCarouselControlAlnik']> span.glyphicon-chevron-right
+    GUI_Click_Element_CSS    div[id='wncWifiCarousel'] > div.carousel-inner > div.item.active > div > div > i.info-icon
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncWifiCarousel'] > div.carousel-inner > div.item.active > div > div > span > span.int_smartConnectDesc51    Smart Connect is enabled on the 5 GHz network    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    div[id='wncWifiCarousel'] > div.carousel-inner > div.item.active > div > div > span > span.waves-effect.waves-gray.int_back
+    #smart 5g2 check
+    GUI_Click_Element_CSS    li[id='wncTab_0']>a>div
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselRightCarouselControlAlnik']> span.glyphicon-chevron-right
+    GUI_Click_Element_CSS    div[id='wncWifiCarousel'] > div.carousel-inner > div.item.active > div > div > i.info-icon
+    ${Result}    CHECK_Element_Should_Have_Text    div[id='wncWifiCarousel'] > div.carousel-inner > div.item.active > div > div > span > span.int_smartConnectDesc52    Smart Connect is enabled on the 5 GHz network    False
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    div[id='wncWifiCarousel'] > div.carousel-inner > div.item.active > div > div > span > span.waves-effect.waves-gray.int_back
+    GUI_Click_Element_CSS    a[id='wncWifiCarouselRightCarouselControlAlnik']> span.glyphicon-chevron-right
+
+Check_Wireless_Network_Panel_Config
+    FUNCTION_Goto_Dashboard_Page
+    COMMON_Scroll_To_Element    div[id='wirelesNetworksWrapper']
+    GUI_Click_Element_CSS    li[id='wncTab_1']>a>div
+    GUI_Click_Element_CSS    div[id='EditIconDiv'] > i
+    ${Result}    CHECK_Elements_Should_Show    False    div[id='wncEditCard']
+    Should Be True    '${Result}'=='PASS'
+    COMMON_Input_Text    input[id='editSSIDInput']    ${EMPTY}
+    GUI_Click_Element_CSS    div[id='intSaveDiv']
+    ${Result}    CHECK_Alert_Should_Show    div[id='popAlertWarning']    You must enter a SSID in the field
+    Should Be True    '${Result}'=='PASS'
+    GUI_Click_Element_CSS    div[id='closeIconDiv1']
+    ${Result}    CHECK_Elements_Should_Show    False    div[id='wirelesNetworksContainer']
+    Should Be True    '${Result}'=='PASS'

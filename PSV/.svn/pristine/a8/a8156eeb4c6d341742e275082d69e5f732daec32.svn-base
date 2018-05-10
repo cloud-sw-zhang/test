@@ -1,0 +1,55 @@
+*** Settings ***
+Resource          ../../ProjectResource_Envirement.txt
+
+*** Test Cases ***
+1.2.4.1 Network Speed and Total Data Usage Test+
+    Test1.2.4.1_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.2.4.1_Step1 Log In
+    Test1.2.4.1_Step2 Verify speed test page
+    Test1.2.4.1_Step3 Verify the total data usage page+
+
+*** Keywords ***
+Test1.2.4.1_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.2.4.1_Step1 Log In
+    COMMON_Log_In    %{U_WEB_HTTP_USER}    %{U_WEB_HTTP_PWD}
+
+Test1.2.4.1_Step2 Verify speed test page
+    Check_Speed_Test_Panel
+
+Test1.2.4.1_Step3 Verify the total data usage page+
+    Check_Total_Data_Usage_Panel+
+
+Check_Speed_Test_Panel
+    COMMON_Scroll_To_Element    div[id='networkSpeedContainerWrapper']
+    Sleep    5
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-2.png
+    GUI_Click_Element_CSS    div[id='nsc_header_blockTwo']>a
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1(1).png
+    ${Result}    CHECK_Wait_Until_Element_Should    div[id='networkSpeedContainerWrapper'] > div.load-box > div.load-box-wrapper    True    60
+    Should Be True    '${Result}'=='PASS'
+    ${Result}    CHECK_Wait_Until_Element_Should    div[id='networkSpeedContainerWrapper'] > div.load-box > div.load-box-wrapper    False    60
+    Should Be True    '${Result}'=='PASS'
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-1(2).png
+
+Check_Total_Data_Usage_Panel+
+    FUNCTION_Switch_Dynamic_Qos    On
+    FUNCTION_Goto_Dashboard_Page
+    COMMON_Scroll_To_Element    div[id='totoalDataUsageContainerWrapper']
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-3.png
+    ${Result}    CHECK_Elements_Should_Show    True    div[id='tduChartWrapper']
+    Should Be True    '${Result}'=='PASS'
+    FUNCTION_Switch_Dynamic_Qos    Off
+    FUNCTION_Goto_Dashboard_Page
+    COMMON_Scroll_To_Element    div[id='totoalDataUsageContainerWrapper']
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-5.png
+    #===============    +    ==============
+    #${Result}    CHECK_Elements_Should_Not_Show    True    div[id='tduChartWrapper']
+    #Should Be True    '${Result}'=='PASS'
+    #===============    +    ==============

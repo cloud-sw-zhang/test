@@ -1,0 +1,5 @@
+*** Settings ***
+Suite Setup       Setup_Pre_Condition
+Test Setup        Common_Test_Setup
+Test Teardown     Common_Test_Teardown
+Resource          ../../share_resourse.txt

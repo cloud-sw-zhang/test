@@ -1,0 +1,185 @@
+*** Settings ***
+Resource          ../../ProjectResource_Envirement.txt
+
+*** Test Cases ***
+1.1.1.1 Setup Wizard From Reset Test
+    Test1.1.1.1_Step0 Set Environment    Netgear Router R8500    Chrome    https://192.168.1.1/    admin    password
+    Test1.1.1.1_Step1 Load Default By Python
+    Test1.1.1.1_Step3 Access GUI from LAN PC with Browser with cable connect to WAN port
+    Test1.1.1.1_Step5 Connect WAN port to on DHCP server
+    Test1.1.1.1_Step6 DUT will check new firmware
+    Test1.1.1.1_Step8 Set Router password
+    Test1.1.1.1_Step9 Verify Two Password Recovery Question
+    Test1.1.1.1_Step10 Setup WiFi
+    Test1.1.1.1_Step11 Setup Enhance Experience
+    Test1.1.1.1_Step12 Setup Complete
+
+1.1.1.2 Tour Test
+    #Not Used
+    Log    The case is canceled by newer firmware or spec!
+
+*** Keywords ***
+Test1.1.1.1_Step0 Set Environment
+    [Arguments]    ${Title}    ${Browser}    ${Url}    ${Uname}    ${Password}
+    Set Environment Variable    U_WEB_HTTP_TITLE    ${Title}
+    Set Environment Variable    U_CUSTOM_BROWSER_TYPE    ${Browser}
+    Set Environment Variable    G_PROD_IP_ADDR    ${Url}
+    Set Environment Variable    U_WEB_HTTP_USER    ${Uname}
+    Set Environment Variable    U_WEB_HTTP_PWD    ${Password}
+
+Test1.1.1.1_Step1 Load Default By Python
+    FUNCTION_Load_Default_By_Python
+
+Test1.1.1.1_Step3 Access GUI from LAN PC with Browser with cable connect to WAN port
+    COMMON_Open_Browser
+    Run Keyword And Return Status    Check_InternetConnectionPage_ShouldShow
+
+Test1.1.1.1_Step5 Connect WAN port to on DHCP server
+    Check_SuccessfulConnectedPage_ShouldShow
+
+Test1.1.1.1_Step6 DUT will check new firmware
+    Check_FirmwareCheckingUpdatePage_ShouldShow
+
+Test1.1.1.1_Step7 DUT Automatic Update the Firmware
+
+Test1.1.1.1_Step8 Set Router password
+    Check_PasswordSettingPage_ShouldShow
+    Check_PasswordSettingPage_PasswordSetting
+
+Test1.1.1.1_Step9 Verify Two Password Recovery Question
+    Check_PasswordRecoveryQuestion1Page_ShouldShow
+    Check_PasswordRecoveryQuestion1Page_Question
+    Check_PasswordRecoveryQuestion2Page_ShouldShow
+    Check_PasswordRecoveryQuestion2Page_Question
+
+Test1.1.1.1_Step10 Setup WiFi
+    Check_WiFiSettingPage_ShouldShow
+    Check_WiFiSettingPage_WiFiSetting
+    Check_WiFiInSettingPage
+
+Test1.1.1.1_Step11 Setup Enhance Experience
+    Check_EnhanceExperiencePage
+
+Test1.1.1.1_Step12 Setup Complete
+    Check_SetupCompletePage
+
+Check_InternetConnectionPage_ShouldShow
+    #checkconnection page should show in 30s
+    ${Result}    CHECK_Wait_Until_Element_Should    div[id='checking-for-active-connection-card']    True    30
+    Should Be True    '${Result}'=='PASS'
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-2.png
+
+Check_SuccessfulConnectedPage_ShouldShow
+    #connect success page should show in 30s
+    ${Result}    CHECK_Wait_Until_Element_Should    div[id='successfully-connected-card']    True    90
+    Should Be True    '${Result}'=='PASS'
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-7.png
+
+Check_FirmwareCheckingUpdatePage_ShouldShow
+    #firmware update check page should show in 30s
+    ${Result}    CHECK_Wait_Until_Element_Should    div[id='checking-updates-card']    True    30
+    Should Be True    '${Result}'=='PASS'
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-8.png
+
+Check_PasswordSettingPage_ShouldShow
+    #password setting page should show in 30s
+    ${Result}    CHECK_Wait_Until_Element_Should    div[id='router-password-card']    True    30
+    Should Be True    '${Result}'=='PASS'
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-12.png
+
+Check_PasswordSettingPage_PasswordSetting
+    #Input empty password
+    GUI_Click_Element_CSS    input[id='advSetPasswordNew']
+    COMMON_Input_Text    input[id='advSetPasswordNew']    ${EMPTY}
+    GUI_Click_Element_CSS    button[id='RouterPwdNext']
+    #Shoud warn 'You must enter the password in the field'
+    ${Result}    CHECK_Alert_Should_Show    div[id='popAlertWarning']    You must enter the password in the field    30
+    Should Be True    '${Result}'=='PASS'
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-12(E1-Empty_Password).png
+    #Input correct password then NEXT
+    COMMON_Input_Text    input[id='advSetPasswordNew']    password
+    GUI_Click_Element_CSS    button[id='RouterPwdNext']
+
+Check_PasswordRecoveryQuestion1Page_ShouldShow
+    #password question page1 should show in 30s
+    ${Result}    CHECK_Wait_Until_Element_Should    div[id='router-password-question-1-card']    True    30
+    Should Be True    '${Result}'=='PASS'
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-14-Q1.png
+
+Check_PasswordRecoveryQuestion1Page_Question
+    #choise question 1 with list 1
+    GUI_Click_Element_CSS    input[id='CDLESSpasswordRecoveryQ1']
+    GUI_Click_Element_CSS    li[id='CDLESSPeriodFirstNetrearProductLi']>a
+    GUI_Click_Element_CSS    input[id='CDLESSpasswordRecoveryAns1']
+    #set question 1's answer to '1'
+    COMMON_Input_Text    input[id='CDLESSpasswordRecoveryAns1']    1
+    GUI_Click_Element_CSS    button[id='CDLESSpasswordRecoveryQ1Next']
+
+Check_PasswordRecoveryQuestion2Page_ShouldShow
+    #password question page2 should show in 30s
+    ${Result}    CHECK_Wait_Until_Element_Should    div[id='router-password-question-2-card']    True    30
+    Should Be True    '${Result}'=='PASS'
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-14-Q2.png
+
+Check_PasswordRecoveryQuestion2Page_Question
+    #choise question 2 with list 1
+    GUI_Click_Element_CSS    input[id='CDLESSpasswordRecoveryQ2']
+    GUI_Click_Element_CSS    li[id='CDLESSPeriodSisterFirstNameLi']>a
+    GUI_Click_Element_CSS    input[id='CDLESSpasswordRecoveryAns2']
+    #set question 2's answer to '1'
+    COMMON_Input_Text    input[id='CDLESSpasswordRecoveryAns2']    1
+    GUI_Click_Element_CSS    button[id='CDLESSpasswordRecoveryQ2Next']
+
+Check_WiFiSettingPage_ShouldShow
+    ${Result}    CHECK_Wait_Until_Element_Should    div[id='setup-wifi-card']    True    30
+    Should Be True    '${Result}'=='PASS'
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-15.png
+
+Check_WiFiSettingPage_WiFiSetting
+    #Input Invalid SSID
+    COMMON_Input_Text    input[id='installationWizardCard16Ssid']    ${EMPTY}
+    #GUI_Click_Element_CSS    button[id='SetupWifiNext']
+    Click_Element    SetupWifiNext
+    #Shoud warn 'SSID cannot be empty'
+    ${Result}    CHECK_Alert_Should_Show    div[id='popAlertWarning']    SSID cannot be empty    30
+    Should Be True    '${Result}'=='PASS'
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-15(E1-Empty_SSID).png
+    #Input Invalid Password
+    COMMON_Input_Text    input[id='installationWizardCard16Ssid']    KIDD8500
+    COMMON_Input_Text    input[id='installationWizardCard16Pwd']    ${EMPTY}
+    GUI_Click_Element_CSS    button[id='SetupWifiNext']
+    #Shoud warn 'The password must use between 8 and 63 ASCII characters or exactly 64 hex characters (0 to 9 and A to F)'
+    ${Result}    CHECK_Alert_Should_Show    div[id='popAlertWarning']    The password must use between 8 and 63 ASCII characters or exactly 64 hex characters (0 to 9 and A to F)    30
+    Should Be True    '${Result}'=='PASS'
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-15(E2-Empty_Password).png
+    #Input Valid SSID and Password then NEXT
+    COMMON_Input_Text    input[id='installationWizardCard16Ssid']    KIDD8500
+    COMMON_Input_Text    input[id='installationWizardCard16Pwd']    12345678
+    GUI_Click_Element_CSS    button[id='SetupWifiNext']
+
+Check_WiFiInSettingPage
+    #wifi setting' second page should show in 30s
+    ${Result}    CHECK_Wait_Until_Element_Should    div[id='tri-band-sc-off-card']    True    30
+    Should Be True    '${Result}'=='PASS'
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-16.png
+    #wifi setting' second page should show in 30s
+    ${Result}    CHECK_Wait_Until_Element_Should    div[id='password-updated-tri-band-sc-off-card']    True    30
+    Should Be True    '${Result}'=='PASS'
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-17.png
+    Sleep    20
+    #NEXT
+    GUI_Click_Element_CSS    button[id='TriWifiCompNext']
+
+Check_EnhanceExperiencePage
+    #enhance experience page should show in 30s
+    ${Result}    CHECK_Wait_Until_Element_Should    div[id='enhance-experience-card']    True    30
+    Should Be True    '${Result}'=='PASS'
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-18.png
+    #NEXT
+    GUI_Click_Element_CSS    button[id='CDLESSDownloadAPPSkip']
+
+Check_SetupCompletePage
+    #setup complete page should show in 30s
+    ${Result}    CHECK_Wait_Until_Element_Should    div[id='setup-complete-1']    True    30
+    Should Be True    '${Result}'=='PASS'
+    Capture Page Screenshot    %{G_CURRENTLOG}\\Figure-20.png
